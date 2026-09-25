@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: odoo
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in Coolify env}
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
@@ -26,7 +26,7 @@ services:
       HOST: db
       PORT: 5432
       USER: odoo
-      PASSWORD: ${DB_PASSWORD}
+      PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in Coolify env}
     volumes:
       - odoo-data:/var/lib/odoo
     # Coolify's Traefik routes to 8069; threaded mode serves the websocket there too.

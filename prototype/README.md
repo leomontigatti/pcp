@@ -20,7 +20,8 @@ Nothing here is production. No customer data goes in.
 1. Project: create `pcp`, environment `prototype`.
 2. Resource: New → Docker Compose → Public repository `https://github.com/leomontigatti/pcp`,
    branch `main`, base directory `/prototype`, compose file `docker-compose.yaml`.
-3. Environment variable: `DB_PASSWORD` (any long random string).
+3. Environment variable: `DB_PASSWORD` (any long random string). Coolify pre-creates the key
+   from the compose file but leaves it empty; fill it in or Postgres refuses to initialize.
 4. Domain on the `odoo` service: `https://odoo-proto.<your-domain>` → port 8069.
 5. Deploy. First build clones the repos and takes a few minutes.
 6. Open the domain, create database `proto` (language Español (AR), country Argentina,
