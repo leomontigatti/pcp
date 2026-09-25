@@ -1,0 +1,8 @@
+# name  git-url  branch
+# Verified 2026-09-25: every repo below has an active 19.0 branch.
+odoo-argentina-ce        https://github.com/ingadhoc/odoo-argentina-ce.git        19.0
+odoo-argentina           https://github.com/ingadhoc/odoo-argentina.git           19.0
+account-payment          https://github.com/ingadhoc/account-payment.git          19.0
+account-financial-tools  https://github.com/ingadhoc/account-financial-tools.git  19.0
+account-invoicing        https://github.com/ingadhoc/account-invoicing.git        19.0
+oca-reporting-engine     https://github.com/OCA/reporting-engine.git              19.0

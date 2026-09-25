@@ -1,0 +1,38 @@
+# Coolify: deploy as "Docker Compose" from this repo, base directory /prototype.
+# Coolify injects the domain via labels on the `odoo` service; expose port 8069 in the app settings.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  odoo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      HOST: db
+      PORT: 5432
+      USER: odoo
+      PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - odoo-data:/var/lib/odoo
+    # Coolify's Traefik routes to 8069; threaded mode serves the websocket there too.
+    expose:
+      - "8069"
+
+volumes:
+  db-data:
+  odoo-data:

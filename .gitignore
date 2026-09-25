@@ -1,0 +1,14 @@
+# secrets and local state
+.env
+*.env
+*.key
+*.crt
+*.csr
+*.pem
+prototype/certs/
+# python
+__pycache__/
+*.pyc
+# editors
+.vscode/
+.idea/
