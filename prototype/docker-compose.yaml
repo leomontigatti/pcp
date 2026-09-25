@@ -27,6 +27,7 @@ services:
       PORT: 5432
       USER: odoo
       PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in Coolify env}
+      ADMIN_PASSWD: ${ADMIN_PASSWD:?set ADMIN_PASSWD in Coolify env}
     volumes:
       - odoo-data:/var/lib/odoo
     # Coolify's Traefik routes to 8069; threaded mode serves the websocket there too.

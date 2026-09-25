@@ -7,7 +7,7 @@ export DB_PASSWORD="${DB_PASSWORD:-smoke}"
 trap 'docker compose -p pcp-smoke down -v >/dev/null 2>&1 || true' EXIT
 docker compose -p pcp-smoke build odoo
 docker compose -p pcp-smoke up -d db
-docker compose -p pcp-smoke run --rm --no-deps -e HOST=db -e USER=odoo -e PASSWORD="$DB_PASSWORD" odoo \
+docker compose -p pcp-smoke run --rm --no-deps -e HOST=db -e USER=odoo -e PASSWORD="$DB_PASSWORD" -e ADMIN_PASSWD=smoke odoo \
   odoo -c /etc/odoo/odoo.conf -d smoke --without-demo --stop-after-init \
   -i l10n_ar_fiscal_ws,l10n_ar_tax,point_of_sale,sale_management,stock,purchase \
   --load-language=es_AR 2>&1 | tee /tmp/pcp-smoke.log | grep -E --line-buffered " (ERROR|CRITICAL) |Traceback|Modules loaded|loading .* modules" | tail -40

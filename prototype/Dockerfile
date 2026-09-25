@@ -14,6 +14,9 @@ RUN bash /tmp/build-addons.sh /mnt/extra-addons /tmp/repos.txt \
 
 COPY addons/ /mnt/extra-addons/pcp/
 COPY config/odoo.conf /etc/odoo/odoo.conf
-RUN chown -R odoo:odoo /mnt/extra-addons /etc/odoo/odoo.conf
+COPY entrypoint.sh /pcp-entrypoint.sh
+RUN chown -R odoo:odoo /mnt/extra-addons /etc/odoo
 
 USER odoo
+ENTRYPOINT ["/pcp-entrypoint.sh"]
+CMD ["odoo"]

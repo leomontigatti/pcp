@@ -12,3 +12,4 @@ __pycache__/
 # editors
 .vscode/
 .idea/
+.env.*
