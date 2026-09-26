@@ -28,7 +28,12 @@ def one(model, domain, **k):
 def upsert(model, domain, vals, ctx=None):
     k = {"context": ctx} if ctx else {}
     rid = one(model, domain, **k)
-    if rid: call(model, "write", [rid], vals, **k); print(f"  = {model} {rid}")
+    if rid:
+        cur = call(model, "read", [rid], fields=list(vals), **k)[0]
+        def same(a, b): return (a[0] if isinstance(a, list) and len(a) == 2 and isinstance(a[0], int) else a) == b
+        diff = {f: v for f, v in vals.items() if not same(cur.get(f), v)}
+        if diff: call(model, "write", [rid], diff, **k)
+        print(f"  = {model} {rid}" + (f" updated {sorted(diff)}" if diff else ""))
     else: rid = create(model, vals, **k); print(f"  + {model} {rid}")
     return rid
 def cuit_check(base10):
@@ -42,6 +47,10 @@ TAX_S21, TAX_P21 = 64, 65
 TAX_P_IIBB_CBA = 4
 UNIT = 1
 WSFE = one("l10n_ar.fiscal.ws", [["code", "=", "wsfe"]])
+# FISCAL_WS=1 once the homologación certificate is loaded. Until then the journals number locally
+# as preprinted: l10n_ar_fiscal_ws asks ARCA for the last number before its own local-validation
+# fallback can apply, so without a certificate WSFE journals cannot post at all.
+FISCAL_WS = os.environ.get("FISCAL_WS", "0") == "1"
 
 print(":: company")
 company_cuit = cuit("30", 71000001)
@@ -57,6 +66,14 @@ call("res.partner", "write", [1], {"vat": company_cuit, "l10n_latam_identificati
                                    "street": "Av. Colón 1000", "zip": "5000"})
 print(f"  company CUIT placeholder {company_cuit}")
 
+print(":: settings: homologación, pricelists, line discounts, UoM/packagings, multi-warehouse")
+sid = create("res.config.settings", {"l10n_ar_fiscal_ws_env_type": "homologation", "group_product_pricelist": True,
+                                     "group_discount_per_so_line": True, "group_uom": True,
+                                     "group_stock_multi_locations": True, "group_stock_adv_location": True})
+try: call("res.config.settings", "execute", [sid])
+except xmlrpc.client.Fault as e:
+    if "cannot marshal None" not in e.faultString: raise
+
 print(":: warehouses")  # DEP resupplies the stores; stores can also resupply each other
 wh = {}
 wh["DEP"] = upsert("stock.warehouse", [["code", "in", ["WH", "DEP"]]], {"name": "Depósito", "code": "DEP"})
@@ -66,13 +83,23 @@ call("stock.warehouse", "write", [wh["LOCC"]], {"resupply_wh_ids": [[6, 0, [wh["
 call("stock.warehouse", "write", [wh["LOCN"]], {"resupply_wh_ids": [[6, 0, [wh["DEP"], wh["LOCC"]]]]})
 whrec = {k: call("stock.warehouse", "read", [v], fields=["pos_type_id", "lot_stock_id"])[0] for k, v in wh.items()}
 
+print(":: internal consumption: one location, one operation type per warehouse")
+consume_loc = upsert("stock.location", [["name", "=", "Consumo interno"], ["usage", "=", "inventory"]],
+                     {"name": "Consumo interno", "usage": "inventory"})
+for code, wid in wh.items():
+    upsert("stock.picking.type", [["name", "=", "Consumo interno"], ["warehouse_id", "=", wid]],
+           {"name": "Consumo interno", "code": "internal", "sequence_code": "CONS", "warehouse_id": wid,
+            "default_location_src_id": whrec[code]["lot_stock_id"][0], "default_location_dest_id": consume_loc,
+            "show_operations": False})
+
 print(":: fiscal points (WSFE journals)")
 jr = {}
 base = one("account.journal", [["type", "=", "sale"], ["l10n_ar_afip_pos_number", "=", 1]])
 for code, num, name in [("DEP", 1, "Depósito"), ("LOCC", 2, "Local Centro"), ("LOCN", 3, "Local Norte")]:
     vals = {"name": f"Ventas {name} (PV {num:04d})", "type": "sale", "code": f"V{num:03d}",
-            "l10n_latam_use_documents": True, "l10n_ar_afip_pos_system": "RAW_MAW",
-            "l10n_ar_afip_pos_number": num, "l10n_ar_afip_pos_partner_id": 1, "l10n_ar_fiscal_ws_id": WSFE}
+            "l10n_latam_use_documents": True, "l10n_ar_afip_pos_system": "RAW_MAW" if FISCAL_WS else "II_IM",
+            "l10n_ar_afip_pos_number": num, "l10n_ar_afip_pos_partner_id": 1,
+            "l10n_ar_fiscal_ws_id": WSFE if FISCAL_WS else False}
     dom = [["id", "=", base]] if (num == 1 and base) else [["type", "=", "sale"], ["l10n_ar_afip_pos_number", "=", num]]
     jr[code] = upsert("account.journal", dom, vals)
 
@@ -80,6 +107,7 @@ print(":: price lists")
 pl = {}
 for name in ["Minorista", "Mayorista", "Especial"]:
     pl[name] = upsert("product.pricelist", [["name", "=", name]], {"name": name, "currency_id": 19})
+for stale in call("product.pricelist", "search", [["name", "=", "Predeterminado"]]): call("product.pricelist", "write", [stale], {"active": False})
 pl["Mayorista -14%"] = upsert("product.pricelist", [["name", "=", "Mayorista -14%"]], {"name": "Mayorista -14%", "currency_id": 19})
 upsert("product.pricelist.item", [["pricelist_id", "=", pl["Mayorista -14%"]], ["applied_on", "=", "3_global"]],
        {"pricelist_id": pl["Mayorista -14%"], "applied_on": "3_global", "compute_price": "percentage",
@@ -128,7 +156,4 @@ for code, name in [("LOCC", "Caja Local Centro"), ("LOCN", "Caja Local Norte"), 
         "use_pricelist": True, "pricelist_id": pl["Minorista"], "available_pricelist_ids": [[6, 0, avail]],
         "manual_discount": True})
 
-print(":: settings: homologación")
-sid = create("res.config.settings", {"l10n_ar_fiscal_ws_env_type": "homologation"})
-call("res.config.settings", "execute", [sid])
 print("done")

@@ -36,13 +36,24 @@ Nothing here is production. No customer data goes in.
    `l10n_ar_fiscal_ws`), `sale_management`, `stock`, `purchase`.
    Optional: `l10n_ar_fiscal_ws_reports` for the libro IVA exports.
 2. Company: CUIT, Responsable Inscripto, IIBB Córdoba, activity start date.
-3. Certificate: Ajustes → Facturación → ARCA → homologación. Without a certificate the module
-   validates locally in homologación, so steps 4-7 and the non-CAE tests can start right away.
-   Upload `pcp.crt` and `pcp.key` (see below) when the ARCA paperwork is done.
+3. Certificate: Ajustes → Facturación → ARCA → homologación, upload `pcp.crt` and `pcp.key`
+   (see below). Then rerun `FISCAL_WS=1 python3 setup-proto.py` to switch the three journals
+   from preprinted numbering to WSFE.
+   Known upstream gap (l10n_ar_fiscal_ws 19.0): the advertised "local validation without
+   certificate" is unreachable, because numbering asks ARCA for the last invoice number before
+   the fallback runs. Without a certificate a WSFE journal cannot post at all; hence the toggle.
 4. Fiscal Points: one journal per point of sale: `0001` Depósito (WSFE), `0002` Local A, `0003` Local B.
 5. Warehouses: Depósito, Local A, Local B. One POS config per local, bound to its journal.
 6. Price lists: Minorista, Mayorista, Especial (warehouse only), "Mayorista -14%".
 7. Products: a ream (unit, packaging "Caja x10" with its own barcode), a sleeve of cups.
+
+## Scripts
+
+- `init-db.sh`: create the database and install the modules (once).
+- `setup-proto.py`: idempotent configuration (company, warehouses, fiscal points, price lists,
+  products with packagings, partners, POS). `FISCAL_WS=1` once the certificate is loaded.
+- `scenarios.py`: runs the backend acceptance scenarios below and prints the results.
+- `.env.proto-secrets` (gitignored): URL, database, admin and master passwords.
 
 ## Acceptance tests
 
