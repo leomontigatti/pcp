@@ -53,7 +53,7 @@ WSFE = one("l10n_ar.fiscal.ws", [["code", "=", "wsfe"]])
 FISCAL_WS = os.environ.get("FISCAL_WS", "0") == "1"
 
 print(":: company")
-company_cuit = cuit("30", 71000001)
+company_cuit = os.environ.get("COMPANY_CUIT") or cuit("30", 71000001)
 call("res.company", "write", [1], {
     "name": "PCP Prototipo SA",
     "l10n_ar_afip_responsibility_type_id": RI,
@@ -64,7 +64,7 @@ call("res.company", "write", [1], {
 call("res.partner", "write", [1], {"vat": company_cuit, "l10n_latam_identification_type_id": CUIT_TYPE,
                                    "city": "Córdoba", "state_id": one("res.country.state", [["code", "=", "X"], ["country_id.code", "=", "AR"]]),
                                    "street": "Av. Colón 1000", "zip": "5000"})
-print(f"  company CUIT placeholder {company_cuit}")
+print(f"  company CUIT {company_cuit}")
 
 print(":: settings: homologación, pricelists, line discounts, UoM/packagings, multi-warehouse")
 sid = create("res.config.settings", {"l10n_ar_fiscal_ws_env_type": "homologation", "group_product_pricelist": True,
@@ -101,6 +101,14 @@ for code, num, name in [("DEP", 1, "Depósito"), ("LOCC", 2, "Local Centro"), ("
             "l10n_ar_afip_pos_number": num, "l10n_ar_afip_pos_partner_id": 1,
             "l10n_ar_fiscal_ws_id": WSFE if FISCAL_WS else False}
     dom = [["id", "=", base]] if (num == 1 and base) else [["type", "=", "sale"], ["l10n_ar_afip_pos_number", "=", num]]
+    # A journal with posted invoices cannot change its fiscal setup: retire it and create a fresh one.
+    old = one("account.journal", dom + [["l10n_ar_afip_pos_system", "!=", vals["l10n_ar_afip_pos_system"]]])
+    if old and call("account.move", "search_count", [["journal_id", "=", old], ["state", "=", "posted"]]):
+        drafts = call("account.move", "search", [["journal_id", "=", old], ["state", "=", "draft"]])
+        if drafts: call("account.move", "unlink", drafts)
+        call("account.journal", "write", [old], {"name": f"Ventas {name} (retirado {old})", "code": f"X{old:03d}"[:5], "active": False})
+        print(f"  - account.journal {old} retired")
+        dom = [["type", "=", "sale"], ["l10n_ar_afip_pos_number", "=", num]]
     jr[code] = upsert("account.journal", dom, vals)
 
 print(":: price lists")
