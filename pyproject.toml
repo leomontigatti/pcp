@@ -1,0 +1,18 @@
+# Dev tooling only: versions resolve into uv.lock, which is the single source for every tool
+# (pre-commit hooks run them via `uv run`). Odoo itself runs in the Docker image.
+[project]
+name = "pcp"
+version = "0"
+requires-python = "==3.12.*"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "rust-just>=1.58",
+    "pre-commit>=4.6",
+]
+
+[tool.uv]
+package = false
+# Quarantine: skip artifacts uploaded in the last 3 days (supply-chain buffer, as in en-escena).
+exclude-newer = "3 days"

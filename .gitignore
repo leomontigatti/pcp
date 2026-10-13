@@ -15,3 +15,5 @@ __pycache__/
 .env.*
 prototype/.dev/
 !prototype/.env.example
+# uv
+.venv/
