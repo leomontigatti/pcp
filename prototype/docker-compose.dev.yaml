@@ -35,6 +35,8 @@ services:
       - ./addons:/opt/odoo-addons/pcp:ro
     ports:
       - "127.0.0.1:8069:8069"
+    # Serve and run crons on proto only, so test databases on the same Postgres stay untouched.
+    command: ["odoo", "--database", "proto", "--db-filter", "^proto$$"]
 
 volumes:
   db-data:
