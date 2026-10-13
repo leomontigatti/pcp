@@ -1,7 +1,6 @@
 # Local dev copy of the deployed prototype. Populate it with ./dev-pull.sh, then:
 #   docker compose -f docker-compose.dev.yaml up -d   →  http://localhost:8069
-# The addons the deployed image runs are snapshotted into .dev/extra-addons so the code matches
-# the restored database; addons/ is mounted live on top as pcp.
+# The image pins the same Odoo and addons commits as the deployed one; addons/ is mounted live as pcp.
 name: pcp-dev
 services:
   db:
@@ -33,8 +32,7 @@ services:
       ADMIN_PASSWD: dev
     volumes:
       - odoo-data:/var/lib/odoo
-      - ./.dev/extra-addons:/mnt/extra-addons:ro
-      - ./addons:/mnt/extra-addons/pcp:ro
+      - ./addons:/opt/odoo-addons/pcp:ro
     ports:
       - "127.0.0.1:8069:8069"
 

@@ -10,7 +10,7 @@ Nothing here is production. No customer data goes in.
 ## Layout
 
 - `Dockerfile` builds `odoo:19.0` plus every addons repo listed in `repos.txt`.
-- `repos.txt` pins repo, URL and branch. Change a pin, redeploy.
+- `repos.txt` pins each addons repo to a commit; `scripts/bump-addons.sh` moves pins to the branch head. The `Dockerfile` pins `odoo:19.0` by digest.
 - `config/odoo.conf` runs Odoo threaded behind Coolify's Traefik.
 - `docker-compose.yaml` is what Coolify deploys: Postgres 16 + Odoo.
 - `addons/pcp/` is empty for now. Project addons go here later.
