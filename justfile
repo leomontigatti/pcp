@@ -36,6 +36,10 @@ gate:
     prototype/scripts/test.sh || fail=1
     [[ $fail == 0 ]] && echo "gate: PASS" || { echo "gate: FAIL"; exit 1; }
 
+# Check a PR title the way CI does (Conventional Commit; it becomes the squash commit subject)
+pr-title title:
+    PR_TITLE={{ quote(title) }} python3 .github/scripts/check_pr_title.py
+
 # Replace the local dev copy with a neutralized snapshot of the deployed instance
 dev-pull:
     prototype/dev-pull.sh

@@ -1,0 +1,48 @@
+# Weekly, after a 7-day cooldown on new releases; minor/patch grouped into one PR per ecosystem.
+# Titles carry a Conventional Commit prefix so they pass the PR title check.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        update-types: [minor, patch]
+
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: build
+    groups:
+      dev-tools:
+        update-types: [minor, patch]
+
+  # Python packages the image adds; xlsxwriter and xlrd follow the base image, not PyPI.
+  - package-ecosystem: pip
+    directory: /prototype
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: build
+    ignore:
+      - dependency-name: xlsxwriter
+      - dependency-name: xlrd
+
+  # The odoo:19.0 digest. Monthly: each bump means a rebuild and a test run before merging.
+  - package-ecosystem: docker
+    directory: /prototype
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: build
