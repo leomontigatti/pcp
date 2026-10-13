@@ -19,7 +19,11 @@ case "$ENV_TARGET" in
 esac
 _file="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/$_file"
 [[ -f "$_file" ]] || { echo "${_file##*/} missing: cp .env.example ${_file##*/}" >&2; exit 2; }
-set -a; source "$_file"; set +a
+# .env / .env.deployed: plain KEY=value lines
+set -a
+# shellcheck source=/dev/null
+source "$_file"
+set +a
 _host=$(python3 -I -c 'import sys, urllib.parse; print(urllib.parse.urlparse(sys.argv[1]).hostname)' "$ODOO_URL")
 case "$_host" in localhost | 127.0.0.1) _local=local ;; *) _local=deployed ;; esac
 if [[ "$_local" != "$ENV_TARGET" ]]; then
