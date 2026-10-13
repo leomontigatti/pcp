@@ -2,7 +2,8 @@
 """Configure the prototype instance over XML-RPC. Idempotent: reruns update, never duplicate.
 
 Reads .env.proto-secrets. Placeholder CUITs pass the checksum but belong to nobody;
-replace the company CUIT with the real one before connecting to ARCA.
+set COMPANY_CUIT to the real one before connecting to ARCA. Without it, an existing
+company CUIT is kept and the placeholder only fills an empty one.
 """
 import os, sys, xmlrpc.client
 from pathlib import Path
@@ -53,7 +54,11 @@ WSFE = one("l10n_ar.fiscal.ws", [["code", "=", "wsfe"]])
 FISCAL_WS = os.environ.get("FISCAL_WS", "0") == "1"
 
 print(":: company")
-company_cuit = os.environ.get("COMPANY_CUIT") or cuit("30", 71000001)
+# COMPANY_CUIT wins; otherwise keep whatever CUIT the company already has, so a rerun
+# without the variable cannot clobber the real one with the placeholder.
+company_cuit = (os.environ.get("COMPANY_CUIT")
+                or call("res.partner", "read", [1], fields=["vat"])[0]["vat"]
+                or cuit("30", 71000001))
 call("res.company", "write", [1], {
     "name": "PCP Prototipo SA",
     "l10n_ar_afip_responsibility_type_id": RI,

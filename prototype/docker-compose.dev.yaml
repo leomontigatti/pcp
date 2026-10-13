@@ -1,0 +1,43 @@
+# Local dev copy of the deployed prototype. Populate it with ./dev-pull.sh, then:
+#   docker compose -f docker-compose.dev.yaml up -d   →  http://localhost:8069
+# The addons the deployed image runs are snapshotted into .dev/extra-addons so the code matches
+# the restored database; addons/ is mounted live on top as pcp.
+name: pcp-dev
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  odoo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      HOST: db
+      PORT: 5432
+      USER: odoo
+      PASSWORD: odoo
+      ADMIN_PASSWD: dev
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./.dev/extra-addons:/mnt/extra-addons:ro
+      - ./addons:/mnt/extra-addons/pcp:ro
+    ports:
+      - "127.0.0.1:8069:8069"
+
+volumes:
+  db-data:
+  odoo-data:
