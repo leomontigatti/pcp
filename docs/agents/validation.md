@@ -39,3 +39,14 @@ seconds. Full logs stay in `prototype/.dev/test-logs/` for a week.
 | Run tests | `test [module...]` |
 | Configure the instance | `setup-proto` |
 | Move ADHOC/OCA addons forward | `bump-addons`, review the compare URLs, then `dev-rebuild` |
+| Create or update the GitHub labels in `.github/labels.json` | `labels-sync` |
+
+## Agent hooks
+
+The Claude Code and Codex hooks ([agent-configuration.md](agent-configuration.md#session-hooks)) run the
+same checks as you go: `ruff` formats each Python file an agent edits, and the Stop hook runs pre-commit on
+the changed files before a turn can end. They never run the Odoo tests, and they do not replace
+`uv run just gate`, which is still the check before a commit is done.
+
+Agents only run the recipes listed in the `justfile`. A command that is not a recipe means a recipe to add
+first, not an ad-hoc command.
