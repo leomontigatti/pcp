@@ -10,9 +10,41 @@ dependencies = []
 dev = [
     "rust-just>=1.58",
     "pre-commit>=4.6",
+    "ruff>=0.16",
+    "pylint-odoo>=10.0",
+    "oca-odoo-pre-commit-hooks>=0.2.26",
+    "shellcheck-py>=0.11",
 ]
 
 [tool.uv]
 package = false
 # Quarantine: skip artifacts uploaded in the last 3 days (supply-chain buffer, as in en-escena).
 exclude-newer = "3 days"
+
+[tool.ruff]
+# ADHOC's 19.0 settings (they inherit them from OCA's addons template).
+line-length = 120
+target-version = "py312"
+extend-exclude = ["prototype/.dev"]
+
+[tool.ruff.lint]
+select = ["E", "W", "C90", "F", "UP", "I"]
+
+[tool.ruff.lint.isort]
+section-order = ["future", "standard-library", "third-party", "odoo", "odoo-addons", "first-party", "local-folder"]
+
+[tool.ruff.lint.isort.sections]
+"odoo" = ["odoo"]
+"odoo-addons" = ["odoo.addons"]
+
+[tool.pylint.main]
+load-plugins = ["pylint_odoo"]
+
+[tool.pylint."messages control"]
+# Only the Odoo-specific checks; ruff covers general Python.
+disable = ["all"]
+enable = ["odoolint"]
+
+[tool.pylint.odoolint]
+valid-odoo-versions = ["19.0"]
+manifest-required-authors = ["PCP"]
