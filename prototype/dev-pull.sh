@@ -9,6 +9,7 @@ SSH_HOST="${SSH_HOST:-rylai}"
 APP_UUID="${APP_UUID:-qcx1w6nrzvfsagjemdd4t6aa}"
 DB="${DB:-proto}"
 dc() { docker compose -f docker-compose.dev.yaml "$@"; }
+[[ -f .env ]] || cp .env.example .env
 
 remote_db=$(ssh "$SSH_HOST" "docker ps -qf name=^db-$APP_UUID")
 remote_odoo=$(ssh "$SSH_HOST" "docker ps -qf name=^odoo-$APP_UUID")
@@ -33,5 +34,8 @@ dc run --rm odoo odoo neutralize -d "$DB"
 dc exec -T db psql -U odoo -d "$DB" -c \
   "UPDATE l10n_ar_fiscal_ws SET production_url = 'http://127.0.0.1:9/dev-disabled', homologation_url = 'http://127.0.0.1:9/dev-disabled'"
 
+echo "env['res.users'].browse(2).password = 'admin'; env.cr.commit()" | dc run --rm -T odoo odoo shell -d "$DB" --no-http --log-level=warn
 dc up -d odoo
-echo ">>> http://localhost:8069 (db $DB, same logins as the deployed instance)"
+for _ in $(seq 60); do curl -sf http://localhost:8069/web/health >/dev/null && break; sleep 2; done
+curl -sf http://localhost:8069/web/health >/dev/null || { echo "odoo did not become healthy, see: docker compose -f docker-compose.dev.yaml logs odoo" >&2; exit 1; }
+echo ">>> http://localhost:8069 (db $DB, login admin / admin; other users keep their deployed passwords)"

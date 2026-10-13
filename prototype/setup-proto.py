@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 """Configure the prototype instance over XML-RPC. Idempotent: reruns update, never duplicate.
 
-Reads .env.proto-secrets. Placeholder CUITs pass the checksum but belong to nobody;
+Targets the local dev copy by default; see lib/env.py for --target deployed. Placeholder CUITs pass the checksum but belong to nobody;
 set COMPANY_CUIT to the real one before connecting to ARCA. Without it, an existing
 company CUIT is kept and the placeholder only fills an empty one.
 """
 import os, sys, xmlrpc.client
-from pathlib import Path
+from lib.env import load
 
-for line in (Path(__file__).parent / ".env.proto-secrets").read_text().splitlines():
-    if "=" in line and not line.startswith("#"):
-        k, v = line.split("=", 1); os.environ.setdefault(k, v)
+load(writes=True)
 URL, DB, PW = os.environ["ODOO_URL"], os.environ["ODOO_DB"], os.environ["ODOO_ADMIN_PASSWORD"]
-uid = xmlrpc.client.ServerProxy(f"{URL}/xmlrpc/2/common").authenticate(DB, "admin", PW, {})
+uid = xmlrpc.client.ServerProxy(f"{URL}/xmlrpc/2/common").authenticate(DB, os.environ["ODOO_ADMIN_LOGIN"], PW, {})
 _m = xmlrpc.client.ServerProxy(f"{URL}/xmlrpc/2/object")
 
 def call(model, meth, *a, **k): return _m.execute_kw(DB, uid, PW, model, meth, list(a), k)

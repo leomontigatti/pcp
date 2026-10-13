@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Acceptance scenarios against the prototype (see README). Creates real documents; rerun freely."""
+"""Acceptance scenarios against the prototype (see README). Creates real documents; rerun freely.
+Targets the local dev copy by default; see lib/env.py for --target deployed."""
 import os, sys, xmlrpc.client
-from pathlib import Path
-for line in (Path(__file__).parent / ".env.proto-secrets").read_text().splitlines():
-    if "=" in line and not line.startswith("#"): k, v = line.split("=", 1); os.environ.setdefault(k, v)
+from lib.env import load
+load(writes=True)
 url=os.environ['ODOO_URL']; db=os.environ['ODOO_DB']; pw=os.environ['ODOO_ADMIN_PASSWORD']
-uid=xmlrpc.client.ServerProxy(f'{url}/xmlrpc/2/common').authenticate(db,'admin',pw,{})
+uid=xmlrpc.client.ServerProxy(f'{url}/xmlrpc/2/common').authenticate(db,os.environ['ODOO_ADMIN_LOGIN'],pw,{})
 m=xmlrpc.client.ServerProxy(f'{url}/xmlrpc/2/object')
 def call(model,meth,*a,**k):
     try: return m.execute_kw(db,uid,pw,model,meth,list(a),k)
