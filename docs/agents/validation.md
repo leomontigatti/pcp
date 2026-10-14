@@ -27,6 +27,13 @@ Tests run in throwaway databases cloned from a template that has the AR stack in
 data. The first run after an image change builds the template (a few minutes); later runs take
 seconds. Full logs stay in `prototype/.dev/test-logs/` for a week.
 
+## CI
+
+`.github/workflows/ci.yml` runs the same recipes on every PR: `checks` (all pre-commit hooks, plus
+gitleaks over the PR's commits) and `test`. `pr-title.yml` checks the title; check one before
+opening a PR with `uv run just pr-title "<title>"`. Dependabot proposes action, uv, image-pip and
+`odoo:19.0` digest bumps after a 7-day cooldown; addons pins move only through `bump-addons`.
+
 ## Day to day
 
 | Need | Recipe |

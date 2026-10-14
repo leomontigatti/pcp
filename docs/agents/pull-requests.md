@@ -34,9 +34,9 @@ attached by hand when a reviewer needs one, and the PR says so.
 
 ## Babysitting a PR
 
-Seeing a PR through CI and review is the `babysit-pr` skill: the session that opened the PR waits on a
-background `gh pr checks <n> --watch`, wakes when a round needs judgement, fixes the findings that hold,
-answers the rest with the reason, and stops at ready to merge. The merge stays the user's.
+Seeing a PR through CI and review is the `babysit-pr` skill: the session that opened the PR has T3 watch
+it (`watch_pull_request`), wakes when a round needs judgement, fixes the findings that hold, answers
+the rest with the reason, and stops at ready to merge. The merge stays the user's.
 
 Branch protection requires a branch up to date with `main`, and nothing updates it on its own: the
 babysit does it once, when being behind is all that is left (`gh pr update-branch`, or a local merge

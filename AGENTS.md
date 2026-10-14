@@ -42,3 +42,5 @@ open `.agents/skills/X/SKILL.md` and follow it.
 - **Agent configuration** (skills, hooks, subagent wiring):
   [agent-configuration.md](docs/agents/agent-configuration.md).
 - **Upstream skills**: [vendored-skills.md](docs/agents/vendored-skills.md).
+- **T3 Code dependencies** (a change to a workflow that leans on a T3 tool, setting or `t3.json`):
+  [t3-dependencies.md](docs/agents/t3-dependencies.md); keep its entry's "Used by" true.

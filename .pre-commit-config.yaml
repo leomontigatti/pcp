@@ -38,6 +38,16 @@ repos:
         entry: uv run --locked shellcheck -x
         language: system
         types: [shell]
+      - id: actionlint
+        name: actionlint
+        entry: uv run --locked actionlint
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+      - id: zizmor
+        name: zizmor (workflow security)
+        entry: uv run --locked zizmor --no-progress --offline
+        language: system
+        files: ^\.github/(workflows/.*\.ya?ml|dependabot\.ya?ml)$
       - id: pylint-odoo
         name: pylint-odoo
         entry: uv run --locked pylint
