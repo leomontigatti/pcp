@@ -6,5 +6,5 @@ click-odoo==1.8.0
 click-odoo-contrib==1.24
 manifestoo-core==1.16.1
 packaging==26.3
-xlrd==2.0.1
-xlsxwriter==3.1.9
+xlrd==2.0.2
+xlsxwriter==3.2.9
