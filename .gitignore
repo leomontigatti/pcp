@@ -17,3 +17,7 @@ prototype/.dev/
 !prototype/.env.example
 # uv
 .venv/
+
+# implementer subagents' worktrees (Agent tool isolation, the implement-spec skill) and local Claude settings
+.claude/worktrees/
+.claude/settings.local.json

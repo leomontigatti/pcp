@@ -71,6 +71,10 @@ setup-proto *args:
 scenarios *args:
     cd prototype && uv run python scenarios.py {{ args }}
 
+# Create or update the GitHub labels in .github/labels.json (idempotent; needs gh and jq)
+labels-sync:
+    jq -r '.groups[][] | [.name, .color, .description] | @tsv' .github/labels.json | while IFS=$'\t' read -r name color description; do gh label create "$name" --color "$color" --description "$description" --force; done
+
 # Move addons pins in prototype/repos.txt to branch heads (all, or the named repos)
 bump-addons *names:
     prototype/scripts/bump-addons.sh {{ names }}

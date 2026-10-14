@@ -43,3 +43,34 @@ Used by `/wayfinder`. The **map** is a single issue with **child** issues as tic
 - **Frontier query**: list the map's open children (`gh issue list --state open`, scoped to the map's sub-issues / task list), drop any with an open blocker (`issue_dependencies_summary.blocked_by > 0`, or an open issue in the `Blocked by` line) or an assignee; first in map order wins.
 - **Claim**: `gh issue edit <n> --add-assignee @me`, the session's first write.
 - **Resolve**: `gh issue comment <n> --body "<answer>"`, then `gh issue close <n>`, then append a context pointer (gist + link) to the map's Decisions-so-far.
+
+## PRD workflow
+
+A PRD is one issue with a `## Problem Statement`, `## Solution`, numbered user stories, `## Implementation
+Decisions`, `## Testing Decisions`, `## Out of Scope` and `## Further Notes`, written by `/to-spec` from the
+conversation and labelled `ready-for-agent`. Its slices are sub-issues created by `/to-tickets`
+([Ticket operations](#ticket-operations)). The PRD is closed by the PR that closes its chain, never by hand.
+
+## Ticket operations
+
+- **Sub-issue**: a child of the PRD (or of any parent issue) through GitHub's sub-issues. `gh api` on the
+  sub-issues endpoint adds one; `gh issue view <PRD> --json subIssues` lists them.
+- **Blocking**: GitHub's native issue dependencies, as in [Wayfinding operations](#wayfinding-operations):
+  `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-db-id>`.
+  `gh issue view <n> --json blockedBy` shows the open blockers.
+- **Frontier**: the open tickets whose blockers are all closed, in the order the PRD lists them.
+- **Creating a slice**: `gh issue create --title ... --body ...` with the PRD's priority, type and milestone,
+  and `ready-for-agent`. The body names the behaviour the slice delivers and its acceptance criteria, not
+  file paths.
+
+## Closing an issue
+
+Close with `gh issue close <n> --comment "..."`. A closure that is a decision not to do the work starts its
+comment with `Closure:` and says why; a closure that is done says what landed (a commit or a PR).
+
+## Research tickets
+
+A research ticket is answered by the `research` agent ([agent-configuration.md](./agent-configuration.md#delegating-to-subagents))
+and its findings are posted as a comment with the source URL beside each claim. A finding that a later
+decision will cite is also committed as `docs/research/<kebab-name>.md`, in a branch that goes through a
+PR like any other change.
