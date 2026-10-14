@@ -31,10 +31,11 @@ Odoo and GitHub-only adaptations.
   `dev-shell` snippet, since pcp has no browser tooling yet. Its DB notes are `ODOO-TDD.md`, written for
   `TransactionCase`. The frontend TDD notes are dropped: pcp's views are Odoo's, and no reducer or state
   machine pattern applies.
-- `babysit-pr` waits on `gh pr checks --watch`, not a repo script, and has no CodeRabbit: pcp runs no
-  external reviewer. Its verbs are the ones in `implement` step 5.
-- `housekeeping` works from `git worktree` and `gh pr list`, with no sweep script and no per-worktree
-  databases.
+- `babysit-pr` waits on T3's `watch_pull_request` (outside T3, `gh pr checks --watch`), not a repo
+  script, and has no CodeRabbit: pcp runs no external reviewer. Its verbs are the ones in `implement`
+  step 5.
+- `housekeeping` sweeps only what T3's storage cleanup leaves (branches, renamed and unmanaged
+  worktrees), from `git worktree` and `gh pr list`, with no sweep script and no per-worktree databases.
 - `domain-modeling`, `to-spec`, `to-tickets`, `wayfinder` and `tdd` name `CONTEXT.md` where en-escena
   named `GLOSSARY.md`, and the GitHub tracker only.
 - `code-review` names the pcp standards sources (`AGENTS.md`, `docs/agents/`, `CONTEXT.md`), and its
