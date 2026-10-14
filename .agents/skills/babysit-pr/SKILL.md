@@ -1,6 +1,6 @@
 ---
 name: babysit-pr
-description: "See an open PR through CI and review until it is ready to merge: wait on a background watch, fix real findings, decline false ones with a reason, stop at the user's call. Use when asked to babysit, watch or get a PR green or mergeable, and at the end of implement."
+description: "See an open PR through CI and review until it is ready to merge: wait on a watcher, fix real findings, decline false ones with a reason, stop at the user's call. Use when asked to babysit, watch or get a PR green or mergeable, and at the end of implement."
 ---
 
 # Babysit a PR
@@ -9,9 +9,8 @@ You own one PR from its last push to **ready to merge**: checks green, the in-se
 (step 5 of the `implement` skill) run, every finding fixed or answered. The merge is the user's.
 
 The session that opened the PR babysits it: it wrote the change, so it is the one that can judge
-whether a finding holds. The waiting costs it nothing, because a background command does the
-waiting and the session wakes only when there is something to judge, usually once to three times
-per PR.
+whether a finding holds. The waiting costs it nothing, because the harness does the waiting and the
+session wakes only when there is something to judge, usually once to three times per PR.
 
 ## 1. Preflight
 
@@ -20,14 +19,26 @@ Done when `git status` is clean and `HEAD` is the PR head.
 
 ## 2. Wait for the round
 
-Run `gh pr checks <n> --watch --fail-fast` with Bash, `run_in_background: true` and a timeout of
-7200000 ms, then end your turn. No subagent, no `sleep`: the command re-invokes you when it exits.
+Read the round (below) once before the first wait, and triage anything already open. Then wait,
+and end your turn. No subagent, no `sleep`:
+
+- **In T3 Code** (the `watch_pull_request` tool is available): call it on the PR. T3 wakes the
+  thread when a check fails, when the required checks pass, when someone else comments or reviews,
+  and when the branch starts to conflict. Only comments posted after the call wake you, which is
+  why the round is read first. The watch lasts across rounds and pushes until the PR merges or
+  closes or you unwatch it; if a wake says it ended, call it again
+  (a settled thread must be unsettled first). A subagent cannot watch, so the
+  babysit stays in the session that owns the PR.
+- **Outside T3**: run `gh pr checks <n> --watch` with Bash, `run_in_background: true` and a
+  timeout of 7200000 ms. The command re-invokes you when every check has finished. It watches
+  checks only: comments, reviews and conflicts surface when you read the round.
 
 On every wake, first bring the local branch level with GitHub, since a branch update may have
-moved it: `git fetch origin <branch> && git merge --ff-only origin/<branch>`. Then read the state:
+moved it: `git fetch origin <branch> && git merge --ff-only origin/<branch>`. Then **read the
+round**:
 
 ```bash
-gh pr view <n> --json state,isDraft,headRefOid,mergeStateStatus,reviewDecision,statusCheckRollup
+gh pr view <n> --json state,isDraft,headRefOid,mergeable,mergeStateStatus,reviewDecision,statusCheckRollup
 read -r owner repo < <(gh repo view --json owner,name --jq '"\(.owner.login) \(.name)"')
 gh api graphql -F owner="$owner" -F repo="$repo" -F number=<n> -f query='
   query($owner: String!, $repo: String!, $number: Int!) {
@@ -37,16 +48,24 @@ gh api graphql -F owner="$owner" -F repo="$repo" -F number=<n> -f query='
     } } }'
 ```
 
-Verdicts from that state:
+The first row that holds decides:
 
-| State                                                              | Verdict                                                  |
-| ------------------------------------------------------------------ | -------------------------------------------------------- |
-| every check passed, no unresolved thread, `mergeStateStatus` CLEAN | `READY`                                                  |
-| a check failed, or a thread is unresolved                          | `ROUND`: step 3                                          |
-| checks still pending after the watch ended                         | `WAITING`: start the watch once more; a second one is `BLOCKED` naming the stuck check |
-| `mergeStateStatus` BEHIND                                          | step 4b                                                  |
-| `mergeStateStatus` DIRTY (conflict)                                | step 4b                                                  |
-| `state` MERGED or CLOSED                                           | step 5 as `MERGED` or `BLOCKED`                          |
+| State                                                                 | Do                               |
+| --------------------------------------------------------------------- | -------------------------------- |
+| `state` is `MERGED`                                                   | Step 5 as MERGED.                |
+| `state` is `CLOSED`                                                   | Step 5 as BLOCKED.               |
+| `mergeable` is `CONFLICTING` or `mergeStateStatus` is `DIRTY`         | Step 4b.                         |
+| a check still running, or `mergeStateStatus` `UNKNOWN`                | See below.                       |
+| an unresolved thread, a review finding, or a red check                | Step 3.                          |
+| a draft, `CHANGES_REQUESTED`, or `mergeStateStatus` `BLOCKED`         | Step 5 as BLOCKED, naming which. |
+| `mergeStateStatus` is `BEHIND`                                        | Step 4b.                         |
+| none of these                                                         | Step 5 as READY.                 |
+
+**A check still running**: wait for the rest with `gh pr checks <n> --watch` in the background,
+with a timeout of 1500000 ms, then read the round again. T3 wakes on the first red check while
+others may still run, and this wait lets one push answer the whole round. It also covers a fresh
+push nothing has reported on yet: when it exits at once with no checks, run it once more. Anything
+still running after that wait is step 5 as BLOCKED, naming what is stuck.
 
 ## 3. Triage the round
 
@@ -118,7 +137,8 @@ listing what is still open; otherwise go back to step 2.
 
 ## 5. Report
 
-If a push-notification tool is available, send the verdict line through it.
+In T3, call `unwatch_pull_request` on the PR first, so the thread returns to the user's inbox. If a
+push-notification tool is available, send the verdict line through it.
 
 Report to the user in this shape:
 

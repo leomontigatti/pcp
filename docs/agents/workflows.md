@@ -33,7 +33,7 @@ to merge. Stop only if the seams are unclear.
 ```
 
 The PR is reviewed in the session before it is opened (`implement` step 5) and babysat afterwards by
-the same session, with the waiting done by a background `gh pr checks --watch` (`babysit-pr`, per
+the same session, with the waiting done by T3's `watch_pull_request` (`babysit-pr`, per
 [pull-requests.md](./pull-requests.md#babysitting-a-pr)).
 
 ## Investigate before implementing
@@ -63,8 +63,11 @@ thoroughly as the one you are arguing _for_.
 ## Branches, worktrees and T3 Code threads
 
 Local sessions run inside [T3 Code](https://github.com/pingdotgg/t3code). Every T3 thread gets its own
-git worktree and branch. A worktree has no dev setup of its own yet: before its first run, link
-`prototype/.env` from the main checkout and `uv sync --locked`. The local Odoo stack is one stack for
+git worktree and branch: `t3.json` at the repo root sets `defaultThreadEnvMode` to `worktree`, and its
+`runOnWorktreeCreate` script links `prototype/.env` from the main checkout and runs `uv sync --locked`
+before the agent starts. T3 runs that script only once it is imported (project settings → Actions →
+Import from t3.json), once per T3 install; a worktree with no `prototype/.env` link means it never ran,
+and the fix is the import, then the script's command by hand for that worktree. The local Odoo stack is one stack for
 the machine, started with `uv run just dev-up` from any worktree; its database is the one every
 worktree sees. The main checkout stays on `main` and is nobody's working directory.
 
@@ -92,7 +95,8 @@ Rules for a session:
 - **Read-only threads** (writing issues, triage, reviewing a PR without editing code) must not change
   branches.
 - **Leaving a worktree behind is fine; abandoning a branch is not.** Push the branch or delete it.
-  Finished worktrees and their branches go with the `housekeeping` skill.
+  T3's storage cleanup removes a thread's worktree once its PR merges or the thread is deleted, and
+  keeps the branch; the branches, and the worktrees it skips, go with the `housekeeping` skill.
 
 ## Documentation
 

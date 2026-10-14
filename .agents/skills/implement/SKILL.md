@@ -132,5 +132,5 @@ here, so a run that starts from one ends in the PR that closes it unless the use
 Done when `gh pr view` shows it open and it is linked.
 
 Then call the Skill tool with "babysit-pr": this session judges the review rounds, and the waiting
-is done by a background watch, so the session wakes only when a round needs it. Stop only at the
+is done by a watcher (T3's PR watch), so the session wakes only when a round needs it. Stop only at the
 skill's report.
