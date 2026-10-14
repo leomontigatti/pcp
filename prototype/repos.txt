@@ -1,8 +1,9 @@
-# name  git-url  branch
-# Verified 2026-09-25: every repo below has an active 19.0 branch.
-odoo-argentina-ce        https://github.com/ingadhoc/odoo-argentina-ce.git        19.0
-odoo-argentina           https://github.com/ingadhoc/odoo-argentina.git           19.0
-account-payment          https://github.com/ingadhoc/account-payment.git          19.0
-account-financial-tools  https://github.com/ingadhoc/account-financial-tools.git  19.0
-account-invoicing        https://github.com/ingadhoc/account-invoicing.git        19.0
-oca-reporting-engine     https://github.com/OCA/reporting-engine.git              19.0
+# name  git-url  branch  commit
+# Builds check out <commit>; <branch> is what scripts/bump-addons.sh follows.
+# Pinned 2026-10-13 to the commits the deployed image (built 2026-10-01) runs.
+odoo-argentina-ce        https://github.com/ingadhoc/odoo-argentina-ce.git        19.0  b8f6ba02e17efd06e26add57280cd47c6cb0c767
+odoo-argentina           https://github.com/ingadhoc/odoo-argentina.git           19.0  eb07c8b949fa6631914da7afd763c76e45660d35
+account-payment          https://github.com/ingadhoc/account-payment.git          19.0  21e011751a2390bca99ce786f144f851a33f31fe
+account-financial-tools  https://github.com/ingadhoc/account-financial-tools.git  19.0  d0836eabaeef71f013068eb304c5f3815923538e
+account-invoicing        https://github.com/ingadhoc/account-invoicing.git        19.0  96754852d1983c0bb74e1ecde3b91a3d7cf1b924
+oca-reporting-engine     https://github.com/OCA/reporting-engine.git              19.0  b9e8c6cdd2d106614eddaf81bd78f487ae35db45
