@@ -53,7 +53,9 @@ Nothing here is production. No customer data goes in.
 - `setup-proto.py`: idempotent configuration (company, warehouses, fiscal points, price lists,
   products with packagings, partners, POS). `FISCAL_WS=1` once the certificate is loaded.
 - `scenarios.py`: runs the backend acceptance scenarios below and prints the results.
-- `.env.proto-secrets` (gitignored): URL, database, admin and master passwords.
+- Scripts talk to the local dev copy by default (`.env`, copied from `.env.example`). Pass
+  `--target deployed` to use `.env.deployed` (gitignored) instead; scripts that write also need
+  `--yes-deployed` there. `lib/env.py` and `lib/env.sh` enforce this and check the URL matches.
 
 ## Acceptance tests
 

@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Create the prototype database on the deployed instance and install the AR modules.
-# Reads .env.proto-secrets (gitignored). Idempotent: skips creation if the db exists.
+# Deployed only (the local copy comes from dev-pull.sh): ./init-db.sh --target deployed --yes-deployed
+# Idempotent: skips creation if the db exists.
 set -euo pipefail
 cd "$(dirname "$0")"
-set -a; source .env.proto-secrets; set +a
+ENV_WRITES=1 source lib/env.sh "$@"
+[[ "$ENV_TARGET" == deployed ]] || { echo "init-db.sh is for the deployed instance; locally run ./dev-pull.sh" >&2; exit 2; }
 SSH_HOST="${SSH_HOST:-root@72.60.59.2}"
 APP_UUID="${APP_UUID:-qcx1w6nrzvfsagjemdd4t6aa}"
 
