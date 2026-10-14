@@ -9,10 +9,15 @@ compose := "docker compose -f prototype/docker-compose.dev.yaml"
 default:
     @just --list --unsorted
 
-# Install pinned tools; create prototype/.env if missing
+# Install pinned tools and the pre-commit git hook; create prototype/.env if missing
 setup:
     uv sync --locked
+    uv run pre-commit install --install-hooks
     [ -f prototype/.env ] || cp prototype/.env.example prototype/.env
+
+# All linters and formatters on every file (fixes what it can; rerun to confirm)
+lint:
+    uv run pre-commit run --all-files --show-diff-on-failure
 
 # Replace the local dev copy with a neutralized snapshot of the deployed instance
 dev-pull:

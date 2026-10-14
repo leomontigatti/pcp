@@ -16,7 +16,7 @@ remote_odoo=$(ssh "$SSH_HOST" "docker ps -qf name=^odoo-$APP_UUID")
 
 echo ">>> snapshot from $SSH_HOST"
 mkdir -p .dev
-ssh "$SSH_HOST" "docker exec $remote_db pg_dump -U odoo -Fc $DB" > .dev/$DB.dump
+ssh "$SSH_HOST" "docker exec $remote_db pg_dump -U odoo -Fc $DB" > ".dev/$DB.dump"
 ssh "$SSH_HOST" "docker exec $remote_odoo tar -C /var/lib/odoo/filestore -cf - $DB" > .dev/filestore.tar
 
 echo ">>> restore"
@@ -24,7 +24,7 @@ dc stop odoo 2>/dev/null || true
 dc up -d --wait db
 dc exec -T db dropdb -U odoo --if-exists "$DB"
 dc exec -T db createdb -U odoo "$DB"
-dc exec -T db pg_restore -U odoo --no-owner -d "$DB" < .dev/$DB.dump
+dc exec -T db pg_restore -U odoo --no-owner -d "$DB" < ".dev/$DB.dump"
 dc run --rm --no-deps --user root -v "$PWD/.dev:/snap:ro" --entrypoint bash odoo -c \
   "rm -rf /var/lib/odoo/filestore/$DB && mkdir -p /var/lib/odoo/filestore \
    && tar -C /var/lib/odoo/filestore -xf /snap/filestore.tar && chown -R odoo:odoo /var/lib/odoo"

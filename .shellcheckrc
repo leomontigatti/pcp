@@ -1,0 +1,2 @@
+# Remote commands are built locally on purpose (ssh host "docker exec $id ...").
+disable=SC2029

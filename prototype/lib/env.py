@@ -5,6 +5,7 @@
 Scripts that write data pass writes=True; against the deployed instance they then also need
 --yes-deployed. The URL must agree with the target, so a misfilled file cannot cross over.
 """
+
 import argparse
 import os
 import sys
@@ -23,8 +24,13 @@ def load(writes, argv=None):
     a, _ = p.parse_known_args(argv)
     f = ROOT / FILES[a.target]
     if not f.exists():
-        sys.exit(f"{f.name} missing: cp .env.example {f.name}" + (" and fill in the deployed values" if a.target == "deployed" else ""))
-    vals = dict(l.split("=", 1) for l in f.read_text().splitlines() if "=" in l and not l.lstrip().startswith("#"))
+        sys.exit(
+            f"{f.name} missing: cp .env.example {f.name}"
+            + (" and fill in the deployed values" if a.target == "deployed" else "")
+        )
+    vals = dict(
+        line.split("=", 1) for line in f.read_text().splitlines() if "=" in line and not line.lstrip().startswith("#")
+    )
     os.environ.update(vals)  # the file wins over the shell: the target decides, nothing else
     host = urlparse(os.environ["ODOO_URL"]).hostname
     if (host in LOCAL_HOSTS) != (a.target == "local"):

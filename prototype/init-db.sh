@@ -4,6 +4,7 @@
 # Idempotent: skips creation if the db exists.
 set -euo pipefail
 cd "$(dirname "$0")"
+# shellcheck source-path=SCRIPTDIR source=lib/env.sh
 ENV_WRITES=1 source lib/env.sh "$@"
 [[ "$ENV_TARGET" == deployed ]] || { echo "init-db.sh is for the deployed instance; locally run ./dev-pull.sh" >&2; exit 2; }
 SSH_HOST="${SSH_HOST:-root@72.60.59.2}"
