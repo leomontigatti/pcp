@@ -30,6 +30,9 @@ services:
       USER: odoo
       PASSWORD: odoo
       ADMIN_PASSWD: dev
+      AUTO_UPDATE_DB: proto
+      # Upgrade, then neutralize, on every start (entrypoint.sh): this db is a copy of the deployed one.
+      NEUTRALIZE: "1"
     volumes:
       - odoo-data:/var/lib/odoo
       - ./addons:/opt/odoo-addons/pcp:ro

@@ -6,8 +6,10 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends git \
  && rm -rf /var/lib/apt/lists/*
 
-# report_xlsx (OCA) is the only addon with python deps outside Odoo's own requirements
-RUN pip3 install --no-cache-dir --break-system-packages xlsxwriter xlrd
+# click-odoo-update for the entrypoint, plus report_xlsx's deps; see requirements.txt
+COPY requirements.txt /tmp/requirements.txt
+RUN pip3 install --no-cache-dir --break-system-packages --no-deps -r /tmp/requirements.txt \
+ && rm /tmp/requirements.txt
 
 # Addons live outside the base image's VOLUME /mnt/extra-addons: Compose keeps anonymous volumes
 # across recreates, so code there would survive a rebuild and run stale.

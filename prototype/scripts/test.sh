@@ -11,7 +11,7 @@ cd "$(dirname "$0")/.."
 BASE_MODULES=l10n_ar_fiscal_ws,l10n_ar_tax,point_of_sale,sale_management,stock,purchase
 dc() { docker compose -f docker-compose.dev.yaml "$@"; }
 psql_q() { dc exec -T db psql -U odoo -d postgres -Atc "$1"; }
-odoo_run() { dc run --rm --no-deps -T odoo odoo "$@"; }
+odoo_run() { dc run --rm --no-deps -T -e AUTO_UPDATE_DB= odoo odoo "$@"; }
 
 mods=("$@")
 if [[ ${#mods[@]} == 0 ]]; then

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Replace the local dev copy (docker-compose.dev.yaml) with a snapshot of the deployed prototype:
 # database and filestore. Read-only on the server.
-# The copy is neutralized: crons and mail servers off, and every ARCA web service URL points
-# nowhere, so it cannot spend invoice numbers on the real fiscal points.
+# The dev service's entrypoint neutralizes the copy on every start (crons and mail servers off,
+# every ARCA web service URL pointed nowhere), so it cannot spend invoice numbers on the real
+# fiscal points; dev-pull fails if Odoo does not come up healthy.
 set -euo pipefail
 cd "$(dirname "$0")"
 SSH_HOST="${SSH_HOST:-rylai}"
@@ -29,13 +30,9 @@ dc run --rm --no-deps --user root -v "$PWD/.dev:/snap:ro" --entrypoint bash odoo
   "rm -rf /var/lib/odoo/filestore/$DB && mkdir -p /var/lib/odoo/filestore \
    && tar -C /var/lib/odoo/filestore -xf /snap/filestore.tar && chown -R odoo:odoo /var/lib/odoo"
 
-echo ">>> neutralize"
-dc run --rm odoo odoo neutralize -d "$DB"
-dc exec -T db psql -U odoo -d "$DB" -c \
-  "UPDATE l10n_ar_fiscal_ws SET production_url = 'http://127.0.0.1:9/dev-disabled', homologation_url = 'http://127.0.0.1:9/dev-disabled'"
-
-echo "env['res.users'].browse(2).password = 'admin'; env.cr.commit()" | dc run --rm -T odoo odoo shell -d "$DB" --no-http --log-level=warn
+echo ">>> neutralize (entrypoint.sh upgrades, then neutralizes, before Odoo serves)"
+echo "env['res.users'].browse(2).password = 'admin'; env.cr.commit()" | dc run --rm -T -e AUTO_UPDATE_DB= odoo odoo shell -d "$DB" --no-http --log-level=warn
 dc up -d odoo
-for _ in $(seq 60); do curl -sf http://localhost:8069/web/health >/dev/null && break; sleep 2; done
+for _ in $(seq 150); do curl -sf http://localhost:8069/web/health >/dev/null && break; sleep 2; done
 curl -sf http://localhost:8069/web/health >/dev/null || { echo "odoo did not become healthy, see: docker compose -f docker-compose.dev.yaml logs odoo" >&2; exit 1; }
 echo ">>> http://localhost:8069 (db $DB, login admin / admin; other users keep their deployed passwords)"

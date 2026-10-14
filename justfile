@@ -44,7 +44,7 @@ dev-pull:
 dev-up:
     {{ compose }} up -d --wait db
     {{ compose }} up -d odoo
-    for _ in $(seq 60); do curl -sf http://localhost:8069/web/health >/dev/null && exit 0; sleep 2; done; echo "odoo not healthy: just dev-logs" >&2; exit 1
+    for _ in $(seq 150); do curl -sf http://localhost:8069/web/health >/dev/null && exit 0; sleep 2; done; echo "odoo not healthy: just dev-logs" >&2; exit 1
 
 # Stop the local dev stack (data kept)
 dev-down:
