@@ -17,6 +17,16 @@ The deployed instance needs `--target deployed`, and writes need `--yes-deployed
 The local copy is neutralized: it cannot reach ARCA, so anything that asks for a CAE fails there
 by design.
 
+## Before saying something is done
+
+`uv run just gate`. It runs every linter, then the tests of every addon in `prototype/addons`, and
+prints only failures plus a summary line. While iterating, `uv run just test <module>` (and
+`TEST_TAGS=/<module>:<Class>.<test>` to narrow) is faster. Lint may auto-fix files; rerun after.
+
+Tests run in throwaway databases cloned from a template that has the AR stack installed with demo
+data. The first run after an image change builds the template (a few minutes); later runs take
+seconds. Full logs stay in `prototype/.dev/test-logs/` for a week.
+
 ## Day to day
 
 | Need | Recipe |
@@ -26,5 +36,6 @@ by design.
 | Image, `repos.txt` or config changed | `dev-rebuild` |
 | See why Odoo misbehaves | `dev-logs` |
 | Run Python inside Odoo | `echo '<code>' \| uv run just dev-shell` |
+| Run tests | `test [module...]` |
 | Configure the instance | `setup-proto` |
 | Move ADHOC/OCA addons forward | `bump-addons`, review the compare URLs, then `dev-rebuild` |

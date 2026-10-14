@@ -19,6 +19,23 @@ setup:
 lint:
     uv run pre-commit run --all-files --show-diff-on-failure
 
+# Odoo tests in a throwaway db: all addons in prototype/addons, or the named modules.
+# Narrow with TEST_TAGS='/mod:Class.test_x'. Prints failures only and one summary line.
+test *modules:
+    prototype/scripts/test.sh {{ modules }}
+
+# Everything that must pass before a commit is done: lint, then tests. Failures only.
+gate:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    fail=0
+    if ! out=$(uv run pre-commit run --all-files 2>&1); then
+      grep -vE '\.\.\.+(Passed|\(no files to check\)Skipped)$' <<<"$out"; fail=1
+    fi
+    [[ $fail == 0 ]] && echo "lint: PASS" || echo "lint: FAIL (files may have been auto-fixed; rerun)"
+    prototype/scripts/test.sh || fail=1
+    [[ $fail == 0 ]] && echo "gate: PASS" || { echo "gate: FAIL"; exit 1; }
+
 # Replace the local dev copy with a neutralized snapshot of the deployed instance
 dev-pull:
     prototype/dev-pull.sh
