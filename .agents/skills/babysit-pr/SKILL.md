@@ -117,12 +117,13 @@ A finding backed by `AGENTS.md` or `docs/agents/` is never declined on judgement
 Then go back to step 2, unless:
 
 - an **ask** is open: step 5 as NEEDS YOU, after pushing the rest;
-- this was the third push: step 5 as NEEDS YOU, listing what is still open.
+- this was the third round of fixes: step 5 as NEEDS YOU, listing what is still open.
 
 ## 4b. Bring the branch up to date
 
 Branch protection wants the branch current with `main`, and nothing else updates it: this happens
-once, after the fixes, when being behind is all that is left.
+after the fixes, when being behind is all that is left. A `main` that moves while CI runs brings it
+back, so it can take more than one update.
 
 - **BEHIND**: `gh pr update-branch <n>`, which merges `main` in on GitHub when it merges clean;
   then `git fetch origin <branch> && git merge --ff-only origin/<branch>` on the head branch.
@@ -132,22 +133,25 @@ once, after the fixes, when being behind is all that is left.
   commit the merge, and push. A conflict inside a migration or an access rule is an **ask**: abort
   with `git merge --abort` and go to step 5 as NEEDS YOU.
 
-Either one counts as a push toward the three: if this was the third push, step 5 as NEEDS YOU,
-listing what is still open; otherwise go back to step 2.
+A clean `update-branch` is not a round of fixes: it never counts toward the three. A DIRTY merge
+does, since resolving it is a change you made: if it was the third round, step 5 as NEEDS YOU,
+listing what is still open. Otherwise go back to step 2.
 
 ## 5. Report
 
 In T3, call `unwatch_pull_request` on the PR first, so the thread returns to the user's inbox. If a
 push-notification tool is available, send the verdict line through it.
 
-Report to the user in this shape:
+Report to the user as plain markdown in the reply, so long lines wrap, in this shape (a line with
+nothing to list is left out):
 
-```
-Verdict: READY | NEEDS YOU | BLOCKED | MERGED — one line why
-PR: #<n> at <short sha>; checks <green|what is red>; review threads <open count>
-Needs you: <each ask, with the finding and the options>   (omit when empty)
-Fixed: <finding> → <sha>                                  (one line each)
-Declined: <finding> — <reason>                            (one line each)
+```markdown
+**READY | NEEDS YOU | BLOCKED | MERGED:** one sentence why.
+
+- **PR:** #<n> at `<short sha>`, checks <green | what is red>, review threads <open count>
+- **Needs you:** each ask, with the finding and the options
+- **Fixed:** <finding> → `<sha>`, one bullet each
+- **Declined:** <finding>: <reason>, one bullet each
 ```
 
 Nothing here merges, marks a PR draft or ready, rebases or force-pushes: those are the user's.
