@@ -30,8 +30,8 @@ for `domain-modeling`.
 ## Stress-testing a term
 
 The edge cases here are Argentine tax cases: invoices, IVA categories, CAE, Perceptions and
-Withholdings. Name the taxpayer category (Responsable Inscripto, Monotributo, Consumidor Final,
-Exento) and the document type (Factura A, B or C, Nota de Crédito) in every scenario.
+Withholdings. Name the taxpayer category (`Responsable Inscripto`, `Monotributo`, `Consumidor Final`,
+`Exento`) and the document type (`Factura A`, `B` or `C`, `Nota de Crédito`) in every scenario.
 
 ## ADR conflicts
 

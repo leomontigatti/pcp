@@ -4,7 +4,10 @@ Routes to the repo's conventions; each rule lives in the file a route names. The
 every task; a line in the second applies when its leading word matches the task.
 
 PCP is Odoo 19 with the ADHOC Argentine localization. Its own addons live in `prototype/addons/<module>/`, each
-with its `__manifest__.py` and its tests in `tests/` (fixtures in `tests/common.py`).
+with its `__manifest__.py` and its tests in `tests/` (fixtures in `tests/common.py`). Exploring an addon starts with
+its manifest: its dependencies, the data files it loads and its version. For `implement-spec`, two tickets that touch
+the same module's manifest or `migrations/` are blocked one on the other, in list order, migration or not; a ticket
+that does not say whether it touches a module's schema counts as one that does.
 
 The skills, agent briefs and shared hooks are the shared workflow in `leomontigatti/agent-workflow`, installed at
 `~/.agents/workflow`; this repo keeps only its own facts, in the files its `contract.md` lists, and its own hooks

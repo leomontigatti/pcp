@@ -17,8 +17,7 @@ the number assigned, the printed text. Never on how a method builds its query.
   `tests/__init__.py` imports: import every new test module there.
 - Fixtures: extend the addon's `tests/common.py`, or the `setUpClass` of the nearest test class,
   before adding a support file.
-- Run one addon with `uv run just test <module>`, one test with
-  `TEST_TAGS='/<module>:<Class>.<test>' uv run just test <module>` ([validation.md](validation.md#as-you-go)).
+- Run them as [validation.md](validation.md#as-you-go) § As you go says.
 
 ## What not to test
 
@@ -26,8 +25,8 @@ What the framework proves: a field type, a `required`, an access rule Odoo enfor
 Test what it cannot: rounding and sums of amounts, ordering of postings, state after a confirm,
 numbering, the business logic's edge cases.
 
-Text earns an assertion when code computes it, when the law fixes it (`"Nota de Crédito C"`), or
-when a real bug produced the wrong text.
+Text the law fixes, such as `"Nota de Crédito C"`, is the usual case here of text that earns an
+assertion.
 
 ## Mocking
 
@@ -41,6 +40,5 @@ that asks for a CAE is proven this way.
 
 A module's version is the one in its `__manifest__.py`, and a migration script hangs on it under
 `<module>/migrations/<version>/`. Add one, or bump the version, only when the change alters the
-schema or the data. Two tickets that touch the same module's manifest or migrations collide, so
-`implement-spec` serialises them; a ticket that does not say whether it touches a module's schema
-counts as one that does.
+schema or the data. How `implement-spec` serialises tickets that touch the same
+manifest is in `AGENTS.md`.

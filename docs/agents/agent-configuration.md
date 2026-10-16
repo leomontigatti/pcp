@@ -11,22 +11,8 @@ no project live in `leomontigatti/agent-workflow`, installed at `~/.agents/workf
 copy. Change a shared skill there, through a PR; a skill only this repo would use goes in
 `.agents/skills/<name>/`, under a name no shared skill has.
 
-The shared skills read this repo only through the files the shared `contract.md` lists:
-
-| File                                                    | Answers                                                                      |
-| ------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `AGENTS.md`                                             | the router: where each rule lives                                            |
-| `GLOSSARY.md`, `docs/adr/`                              | the domain terms and decisions                                               |
-| `t3.json`                                               | the worktree setup                                                           |
-| [validation.md](validation.md)                          | § As you go, § Before committing                                             |
-| [verification.md](verification.md)                      | launching and driving the local copy, evidence, the feature map              |
-| [review.md](review.md)                                  | the review tiers, always-ask areas, hotspots, breadth, one-way doors         |
-| [issue-tracker.md](issue-tracker.md)                    | GitHub issues, labels, PRDs, tickets, wayfinding, research tickets           |
-| [pull-requests.md](pull-requests.md)                    | the title check, the base branch, the review bot (none)                      |
-| [t3-dependencies.md](t3-dependencies.md)                | what this repo alone assumes about T3 Code                                   |
-| [tdd-odoo.md](tdd-odoo.md)                              | test-first in Odoo                                                           |
-| [research.md](research.md)                              | the `research` agent's sources for this stack                                |
-| `.agents/required-tools`                                | the tools beyond the shared ones a session's shell must find                 |
+The shared skills read this repo only through the files the shared `contract.md` lists; the ones
+this repo keeps are named in `AGENTS.md`.
 
 ## One copy, two harnesses
 

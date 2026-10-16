@@ -4,7 +4,7 @@
   "scripts": [
     {
       "name": "Setup worktree",
-      "command": "root=\"$(cd \"$T3CODE_PROJECT_ROOT\" && pwd -P)\" || exit 1; if [ \"$(pwd -P)\" != \"$root\" ] && [ ! -e prototype/.env ] && [ ! -L prototype/.env ]; then ln -s \"$root/prototype/.env\" prototype/.env; fi; uv sync --locked",
+      "command": "root=\"$(cd \"${T3CODE_PROJECT_ROOT:?is not set}\" && pwd -P)\" || exit 1; if [ \"$(pwd -P)\" != \"$root\" ] && { [ -L prototype/.env ] || [ ! -e prototype/.env ]; }; then ln -sfn \"$root/prototype/.env\" prototype/.env; fi; uv sync --locked",
       "icon": "configure",
       "runOnWorktreeCreate": true,
       "async": false
