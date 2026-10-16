@@ -17,11 +17,17 @@ The deployed instance needs `--target deployed`, and writes need `--yes-deployed
 The local copy is neutralized: it cannot reach ARCA, so anything that asks for a CAE fails there
 by design.
 
-## Before saying something is done
+## As you go
+
+`uv run just test <module>` each time a slice goes green: one addon's tests in a throwaway
+database. Narrow it to one test with `TEST_TAGS='/<module>:<Class>.<test>' uv run just test <module>`
+while you iterate. After a merge, `uv run just lint` and `uv run just test <module>` for the addons
+it touched.
+
+## Before committing
 
 `uv run just gate`. It runs every linter, then the tests of every addon in `prototype/addons`, and
-prints only failures plus a summary line. While iterating, `uv run just test <module>` (and
-`TEST_TAGS=/<module>:<Class>.<test>` to narrow) is faster. Lint may auto-fix files; rerun after.
+prints only failures plus a summary line. Lint may auto-fix files: rerun until it passes.
 
 Tests run in throwaway databases cloned from a template that has the AR stack installed with demo
 data. The first run after an image change builds the template (a few minutes); later runs take
@@ -50,7 +56,7 @@ opening a PR with `uv run just pr-title "<title>"`. Dependabot proposes action, 
 
 ## Agent hooks
 
-The Claude Code and Codex hooks ([agent-configuration.md](agent-configuration.md#session-hooks)) run the
+The project's Claude Code and Codex hooks ([agent-configuration.md](agent-configuration.md#project-hooks)) run the
 same checks as you go: `ruff` formats each Python file an agent edits, and the Stop hook runs pre-commit on
 the changed files before a turn can end. They never run the Odoo tests, and they do not replace
 `uv run just gate`, which is still the check before a commit is done.

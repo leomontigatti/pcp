@@ -1,16 +1,6 @@
 {
-  "description": "The same hooks as .claude/settings.json; the scripts live in .agents/hooks and read either harness's payload.",
+  "description": "The same project hooks as .claude/settings.json; the scripts live in .agents/hooks and read either harness's payload. The shared hooks are wired at user level by ~/.agents/workflow/install.sh.",
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$(git rev-parse --show-toplevel)/.agents/hooks/check-tool-path.sh\""
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
@@ -28,17 +18,6 @@
           {
             "type": "command",
             "command": "\"$(git rev-parse --show-toplevel)/.agents/hooks/stop-lint-check.sh\""
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$(git rev-parse --show-toplevel)/.agents/hooks/block-pkill-f.sh\""
           }
         ]
       }

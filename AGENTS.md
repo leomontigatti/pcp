@@ -3,9 +3,20 @@
 Routes to the repo's conventions; each rule lives in the file a route names. The first section applies to
 every task; a line in the second applies when its leading word matches the task.
 
-Claude Code and Codex share this file, the skills in `.agents/skills/` and the hooks in `.agents/hooks/`
-([agent-configuration.md](docs/agents/agent-configuration.md)). In Codex, "call the Skill tool with X" means
-open `.agents/skills/X/SKILL.md` and follow it.
+PCP is Odoo 19 with the ADHOC Argentine localization. Its own addons live in `prototype/addons/<module>/`, each
+with its `__manifest__.py` and its tests in `tests/` (fixtures in `tests/common.py`).
+
+The skills, agent briefs and shared hooks are the shared workflow in `leomontigatti/agent-workflow`, installed at
+`~/.agents/workflow`; this repo keeps only its own facts, in the files its `contract.md` lists, and its own hooks
+in `.agents/hooks/` ([agent-configuration.md](docs/agents/agent-configuration.md)). In Codex, "call the Skill tool
+with X" means open `~/.agents/workflow/skills/X/SKILL.md` and follow it.
+
+The contract files this repo keeps: this file, [GLOSSARY.md](GLOSSARY.md), `t3.json`, `.agents/required-tools`,
+and in `docs/agents/`: [validation.md](docs/agents/validation.md), [verification.md](docs/agents/verification.md),
+[review.md](docs/agents/review.md), [issue-tracker.md](docs/agents/issue-tracker.md),
+[pull-requests.md](docs/agents/pull-requests.md), [t3-dependencies.md](docs/agents/t3-dependencies.md),
+[tdd-odoo.md](docs/agents/tdd-odoo.md) and [research.md](docs/agents/research.md). `docs/adr/` joins them with
+the first ADR.
 
 ## Every task
 
@@ -15,8 +26,8 @@ open `.agents/skills/X/SKILL.md` and follow it.
   ARCA or the deployed instance. When a rule in these docs fights the task, say so and get a sign-off before
   breaking it. End a run with what needs the user first, then what changed, then what was found in this run.
 - **Implementing** (a feature, a fix, any code change): call the Skill tool with "implement" before editing. Where
-  work starts, investigating before editing, and the thread's branch and worktree:
-  [workflows.md](docs/agents/workflows.md).
+  work starts and what this repo's worktrees need: [workflows.md](docs/agents/workflows.md); the thread's branch,
+  worktree and PR: the shared `implement` skill's `THREADS.md`.
 - **Commands**: run only the recipes listed in the `justfile`, as `uv run just <recipe>`. [validation.md](docs/agents/validation.md)
   is the whole surface. A command the task needs that is not a recipe means adding the recipe first, not running it
   ad hoc.
@@ -24,23 +35,30 @@ open `.agents/skills/X/SKILL.md` and follow it.
   `--target deployed` or `--yes-deployed` unless the user asked for that run in so many words; the deployed instance
   carries the real CUIT and ARCA certificate, and its writes can reach ARCA. [validation.md](docs/agents/validation.md#which-instance)
   says what the flags do.
-- **Subagents**: reviewers spawn as "Spawning a reviewer" in the `code-review` skill says, research as
-  [agent-configuration.md](docs/agents/agent-configuration.md#delegating-to-subagents) says.
-- **Vocabulary and decisions**: the terms are in [CONTEXT.md](CONTEXT.md), English names in code and Spanish where a
-  user reads them; the decisions are in `docs/adr/`. Odoo addon conventions are enforced by the linters in
-  `.pre-commit-config.yaml` (ruff, pylint-odoo, the OCA checks), so a rule they check needs no note here.
+- **Subagents**: each role's model, and how a session reaches it, is the shared `agents/models.md`; when to
+  delegate at all: [agent-configuration.md](docs/agents/agent-configuration.md#delegating-to-subagents).
+- **Vocabulary and decisions**: the terms are in [GLOSSARY.md](GLOSSARY.md); the decisions are in `docs/adr/`.
+- **Code language**: English in code, commits, PRs and docs; Spanish only where an end user reads it (labels, views,
+  printed documents), and as data inside backticks.
+- **Coding standards**: Odoo addon conventions are enforced by the linters in `.pre-commit-config.yaml` (ruff,
+  pylint-odoo, the OCA checks), so a rule they check needs no note here; the rest are these docs and `GLOSSARY.md`.
 
 ## When routed
 
 - **Commands and the validation gate**: [validation.md](docs/agents/validation.md); `uv run just gate` before a
   commit is done.
-- **What a user sees** (views, reports, printed documents), **documentation**: [workflows.md](docs/agents/workflows.md).
+- **What a user sees** (views, reports, printed documents, the point of sale): [verification.md](docs/agents/verification.md).
+- **Documentation**: [workflows.md](docs/agents/workflows.md#documentation).
+- **Review** (tiers, always-ask areas, hotspots, one-way doors): [review.md](docs/agents/review.md).
+- **Tests** in an addon: [tdd-odoo.md](docs/agents/tdd-odoo.md).
+- **Research** outside the repo: [research.md](docs/agents/research.md).
+- **Prototypes** of a screen: Odoo views, QWeb templates and the module's SCSS, with any variant switcher gated on
+  debug mode so a stray merge cannot show it on the deployed instance.
 - **Pull requests**: [pull-requests.md](docs/agents/pull-requests.md).
-- **Issues**, **PRDs**, **tickets**: [issue-tracker.md](docs/agents/issue-tracker.md);
-  **triage labels**: [triage-labels.md](docs/agents/triage-labels.md).
-- **Domain docs**: [domain.md](docs/agents/domain.md): `CONTEXT.md` and `docs/adr/`.
-- **Agent configuration** (skills, hooks, subagent wiring):
-  [agent-configuration.md](docs/agents/agent-configuration.md).
-- **Upstream skills**: [vendored-skills.md](docs/agents/vendored-skills.md).
-- **T3 Code dependencies** (a change to a workflow that leans on a T3 tool, setting or `t3.json`):
+- **Issues**, **PRDs**, **tickets**, **triage labels**: [issue-tracker.md](docs/agents/issue-tracker.md).
+- **Domain docs**: [domain.md](docs/agents/domain.md): `GLOSSARY.md` and `docs/adr/`.
+- **Agent configuration** (the shared workflow, project hooks, PATH):
+  [agent-configuration.md](docs/agents/agent-configuration.md). A change to a shared skill is a PR to
+  `leomontigatti/agent-workflow`, never a copy here.
+- **T3 Code dependencies** (a change to a workflow of this repo that leans on a T3 tool, setting or `t3.json`):
   [t3-dependencies.md](docs/agents/t3-dependencies.md); keep its entry's "Used by" true.
