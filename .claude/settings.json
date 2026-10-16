@@ -27,16 +27,6 @@
     ]
   },
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PROJECT_DIR}/.agents/hooks/check-tool-path.sh"
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
@@ -54,17 +44,6 @@
           {
             "type": "command",
             "command": "${CLAUDE_PROJECT_DIR}/.agents/hooks/stop-lint-check.sh"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PROJECT_DIR}/.agents/hooks/block-pkill-f.sh"
           }
         ]
       }

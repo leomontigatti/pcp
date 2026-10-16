@@ -22,7 +22,7 @@
 # consecutive blocks, which is the backstop, and that is why `stop_hook_active` only picks the
 # trailing instruction.
 #
-# See docs/agents/agent-configuration.md.
+# See docs/agents/agent-configuration.md § Project hooks.
 
 set -uo pipefail
 

@@ -1,8 +1,9 @@
 # Workflows
 
-How work flows in a local session: where it starts, which checkout it happens in, when to
-investigate instead of editing, when it needs a doc change, and how a change to what a user sees is
-checked.
+How work flows in a local session here: where it starts, what this repo's worktrees need, when to
+investigate before recommending, and when a change needs a doc change. The rules for branches,
+worktrees, threads and PRs every session follows are the shared `implement` skill's `THREADS.md`;
+how a change to what a user sees is checked is [verification.md](./verification.md).
 
 ## Where work starts
 
@@ -33,14 +34,7 @@ to merge. Stop only if the seams are unclear.
 ```
 
 The PR is reviewed in the session before it is opened (`implement` step 5) and babysat afterwards by
-the same session, with the waiting done by T3's `watch_pull_request` (`babysit-pr`, per
-[pull-requests.md](./pull-requests.md#babysitting-a-pr)).
-
-## Investigate before implementing
-
-A request to investigate, review, diagnose, audit, analyze or explain is a request for findings:
-return them with the relevant context, the options and their tradeoffs, and a recommended next step,
-then wait. Editing starts when the user asks to implement, fix, apply or make the change.
+the same session, with the waiting done by T3's `watch_pull_request` (the `babysit-pr` skill).
 
 ## Investigate before recommending
 
@@ -60,43 +54,16 @@ thoroughly as the one you are arguing _for_.
   names one high-leverage change in the `codebase-design` skill's vocabulary rather than a list of
   cosmetic refactors.
 
-## Branches, worktrees and T3 Code threads
+## This repo's worktrees
 
-Local sessions run inside [T3 Code](https://github.com/pingdotgg/t3code). Every T3 thread gets its own
-git worktree and branch: `t3.json` at the repo root sets `defaultThreadEnvMode` to `worktree`, and its
-`runOnWorktreeCreate` script links `prototype/.env` from the main checkout and runs `uv sync --locked`
-before the agent starts. T3 runs that script only once it is imported (project settings → Actions →
-Import from t3.json), once per T3 install; a worktree with no `prototype/.env` link means it never ran,
-and the fix is the import, then the script's command by hand for that worktree. The local Odoo stack is one stack for
-the machine, started with `uv run just dev-up` from any worktree; its database is the one every
-worktree sees. The main checkout stays on `main` and is nobody's working directory.
+`t3.json`'s `runOnWorktreeCreate` script links `prototype/.env` from the main checkout and runs
+`uv sync --locked` before the agent starts. In the main checkout, where T3 also runs it for a thread
+with no worktree, it leaves `prototype/.env` alone and only syncs. A worktree with no
+`prototype/.env` link means the script never ran: the fix is importing `t3.json` (project settings
+→ Actions → Import from t3.json), then running the script's command by hand for that worktree.
 
-Rules for a session:
-
-- **Start current.** A thread can be older than the rules it builds against, and a worktree behind
-  `main` reproduces what `main` already replaced. Before the first edit of an implementation,
-  `git fetch origin && git log --oneline HEAD..origin/main` prints nothing; when it lists commits,
-  `git merge origin/main` first.
-- **Work where you started.** The thread's worktree is the working directory. Never `git checkout` or
-  `git switch` in the main checkout, and never create a worktree of your own (`git worktree add`,
-  Claude's `EnterWorktree`): T3 only tracks the branch and pull request of the worktree it created, so
-  a private worktree loses the PR badge and the automatic settling of the thread. The one exception is
-  `implement-spec`'s implementer subagents, each in an Agent-tool worktree under `.claude/worktrees/`:
-  their branches merge into the thread's, which keeps the PR, and the skill removes them.
-- **Branch prefixes.** T3 names the worktree's branch when it creates the thread and renames it once
-  the thread starts, so read it with `git branch --show-current`, never from the worktree's folder
-  name. A session that renames it or creates one uses `feat/`, `fix/`, `docs/`, `chore/`, `refactor/`,
-  `research/` or `prototype/`.
-- **One thread, one branch, one PR.** After `gh pr create`, register the PR with the thread through
-  the `link_pull_request` tool so T3 shows its status and settles the thread when it merges. To keep
-  working on an existing PR, start the thread on that branch (or link the PR) instead of checking it
-  out in another worktree. The PR body is written with the `pr` skill; how evidence is attached is in
-  [pull-requests.md](./pull-requests.md).
-- **Read-only threads** (writing issues, triage, reviewing a PR without editing code) must not change
-  branches.
-- **Leaving a worktree behind is fine; abandoning a branch is not.** Push the branch or delete it.
-  T3's storage cleanup removes a thread's worktree once its PR merges or the thread is deleted, and
-  keeps the branch; the branches, and the worktrees it skips, go with the `housekeeping` skill.
+The local Odoo stack is one for the machine, and its database is the one every worktree sees
+([verification.md](./verification.md#launch)).
 
 ## Documentation
 
@@ -105,7 +72,7 @@ paragraph anywhere under `docs/`, ask what a maintainer or a later session would
 it. If reading the relevant code answers the question, leave it out.
 
 - `docs/agents/` holds operative rules and the traps that are hard to discover from the source.
-  `CONTEXT.md` holds the vocabulary, and `docs/adr/` holds decisions and their reasons.
+  `GLOSSARY.md` holds the vocabulary, and `docs/adr/` holds decisions and their reasons.
 - Do not enumerate fields or methods, narrate control flow, keep file catalogs, or append PR
   summaries. Code, manifests and tests already record the implementation. A local explanation goes in
   a nearby code comment; a doc page is for reasoning that crosses boundaries.
@@ -116,22 +83,3 @@ it. If reading the relevant code answers the question, leave it out.
   the record of the work. Only a plan that has to outlive its session is committed, as
   `docs/plans/<kebab-name>.md`, and is deleted when its work lands. Research that is a durable primary
   source goes under `docs/research/` per [issue-tracker.md](./issue-tracker.md#research-tickets).
-
-## What a user sees
-
-A change to a view, a report, a printed document or a wizard is checked against the local copy before
-it is reviewed. Pcp has no browser or screenshot tooling yet, so the check is:
-
-1. **Data:** `uv run just scenarios` runs the acceptance flows against the local database; for other
-   data, `uv run just setup-proto` configures the instance. Never load data from the deployed
-   instance: it carries the real CUIT, the ARCA certificate and CAE-backed invoices. `uv run just dev-pull` is the one exception,
-   and it neutralizes the copy.
-2. **Drive the flow** through the same path a user takes, or through `echo '<code>' | uv run just
-   dev-shell` when the flow is a model method. Read the result back: the document text, the record's
-   state, the printed output.
-3. **Diagnose from the output, not from guesses:** `uv run just dev-logs` shows Odoo's log.
-4. **Say what was not seen.** The final report names each screen nobody looked at with a person's
-   eyes, so the reviewer knows which part rests on the tests alone.
-
-Skip this for changes with no rendered surface, and say so. Never ask the user to check a screen by
-hand: drive it and show the result.

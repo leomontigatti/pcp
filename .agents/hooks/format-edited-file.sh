@@ -19,7 +19,7 @@
 # - Only `.py` files are touched; the other formatters run in pre-commit, which the Stop hook and
 #   `uv run just lint` both reach.
 #
-# See docs/agents/agent-configuration.md.
+# See docs/agents/agent-configuration.md § Project hooks.
 
 set -uo pipefail
 
