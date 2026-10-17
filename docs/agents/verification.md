@@ -51,15 +51,20 @@ alone.
 
 ## Evidence
 
+Evidence is for the user, in the thread: they approve it there before the PR opens, and the PR
+carries none of it, neither images nor a before-and-after section.
+
 - The **before** is captured before the first edit, the **after** on the same screen, data and
   account.
-- A screen: a `preview_snapshot` with `save: true` in T3. Pcp has no image upload yet, so a
-  screenshot is attached to the PR by hand, and the PR says so; until then the text below is the
-  evidence.
+- A screen: a `preview_snapshot` with `save: true` in T3, shown in the thread as an image embedded
+  by its absolute path. Until the preview tools work against Odoo (`preview-odoo-login` in
+  [t3-dependencies.md](t3-dependencies.md)), the text below is the evidence.
+- Motion or an interaction: a recording (`preview_recording_start` and `preview_recording_stop`),
+  linked in the thread by its absolute path.
 - A printed document or a record: its text before and after, from `dev-shell` or the scenario's
-  output, pasted into the PR's Evidence.
+  output, quoted in the thread.
 - A test that failed without the change is evidence too; a list of green commands is not.
-- Never take evidence from the deployed instance, and never commit PR-only evidence to the repo.
+- Take evidence from the local copy only, and keep it out of the repo.
 
 ## Cleanup
 
