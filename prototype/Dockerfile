@@ -1,5 +1,5 @@
 # Odoo 19.0-20260926. Bump the digest deliberately: docker pull odoo:19.0, then copy its digest here.
-FROM odoo:19.0@sha256:dd9013e669caaa23d26765dc55814655eaeecca7cfc2c265dbabae913bce22fd
+FROM odoo:20.0@sha256:cdd83e8359b3e8c357895d476396c05021fed9975bf420f353bab25fcaed1533
 
 USER root
 RUN apt-get update \
