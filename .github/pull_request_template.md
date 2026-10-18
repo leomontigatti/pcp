@@ -1,23 +1,10 @@
 <!-- Template and rules: the shared `pr` skill (leomontigatti/agent-workflow, skills/pr/SKILL.md). Keep it short; the issue holds the reasoning. -->
 
-<!-- Anything the reviewer must do or decide goes here, first. Delete if there is nothing. -->
+<!-- Anything the user must do or decide goes here, first. Delete if there is nothing. -->
 
-## Summary
+<!-- What changed, as the user or the maintainer would see it, in one to three sentences. Screens were approved in the thread; no images here. -->
 
-<!-- The problem in one or two sentences, then the fix; a picture when the point is structure or order. -->
-
-## Evidence
-
-- **Before:**
-  **After:**
-
-<!-- A change to what a user sees: the printed or recorded output before and after, from the local copy, never the deployed instance. See docs/agents/verification.md § Evidence. -->
-
-## Merge Danger
-
-**Door:** <!-- one-way or two-way -->
-
-**Blast Radius:** <!-- what breaks, and for whom, if this is wrong -->
+<!-- One-way door only: **Door: one-way.** what a revert does not undo. Delete otherwise. -->
 
 ## Review
 

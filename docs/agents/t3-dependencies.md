@@ -54,11 +54,12 @@ Status of an entry:
 ### preview-odoo-login
 - **Workaround:** `docs/agents/verification.md` § Drive falls back to `uv run just scenarios` and
   `dev-shell`, read back as text, because the preview tools have not been tried against the local
-  Odoo copy (`http://localhost:8069`) and its login. PR evidence is text until they have.
+  Odoo copy (`http://localhost:8069`) and its login. Evidence shown in the thread is text until
+  they have.
 - **Used by:** `docs/agents/verification.md` § Drive and § Evidence.
 - **Would improve if:** a session opens `http://localhost:8069` with `preview_open`, signs in as
-  `admin`, drives a form and a printed report, and saves a `preview_snapshot` it can attach to the
-  PR. Then § Drive drops the fallback for screens, and § Evidence the "text until then" line. The
+  `admin`, drives a form and a printed report, and saves a `preview_snapshot` it can show in the
+  thread. Then § Drive drops the fallback for screens, and § Evidence the "text until then" line. The
   shared `preview-tools-verification` trial covers the tools themselves.
 - **Watch:** `apps/server/src/mcp/toolkits/preview/tools.ts` (`preview_open`, `preview_snapshot`
   with `save=true`).

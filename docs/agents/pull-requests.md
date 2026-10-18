@@ -24,8 +24,3 @@ One PR carries every sub-issue of a PRD, with the body the `pr` skill describes.
 opened as a **draft**: the `implement-spec` skill opens it after the first slice merges and marks it
 ready when the last has landed and the chain has been reviewed, then babysits it. The chain pays one
 review instead of one per slice.
-
-## Review bot
-
-None. There is no automatic PR reviewer in this repo: the in-session review of `implement` step 5
-carries that job, with the correctness axis on every diff that changes behaviour.
