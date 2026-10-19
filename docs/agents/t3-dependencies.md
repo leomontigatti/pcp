@@ -20,9 +20,11 @@ Status of an entry:
 
 ### setup-links-env
 - **Relies on:** the `runOnWorktreeCreate` script runs with the new worktree as its cwd and
-  `T3CODE_PROJECT_ROOT` set to the main checkout, so it can link `prototype/.env` from there; in a
-  thread with no worktree it runs in the main checkout itself, which the script detects by
-  comparing the two paths and then leaves `prototype/.env` alone. The script also runs
+  `T3CODE_PROJECT_ROOT` set to the main checkout, so it can link `prototype/.env` from there. A
+  thread with no worktree runs no setup at all (pingdotgg/t3code#18891); the one case that runs the
+  script in the main checkout itself is a thread launched as `existing_worktree` on the project
+  root, which the script detects by comparing the two paths and then leaves `prototype/.env`
+  alone. The script also runs
   `uv sync --locked`, so `uv` must be on the setup terminal's PATH
   (`packages/shared/src/projectScripts.ts`, `projectScriptRuntimeEnv`;
   `apps/server/src/project/ProjectSetupScriptRunner.ts`).
