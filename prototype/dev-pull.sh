@@ -6,7 +6,7 @@
 # fiscal points; dev-pull fails if Odoo does not come up healthy.
 set -euo pipefail
 cd "$(dirname "$0")"
-SSH_HOST="${SSH_HOST:-rylai}"
+SSH_HOST="${SSH_HOST:-root@rylai}"
 APP_UUID="${APP_UUID:-qcx1w6nrzvfsagjemdd4t6aa}"
 DB="${DB:-proto}"
 dc() { docker compose -f docker-compose.dev.yaml "$@"; }

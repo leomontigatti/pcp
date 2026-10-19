@@ -6,7 +6,7 @@ first instead of running an ad-hoc command, so the next run is the same.
 
 ## First time on a machine
 
-`uv run just setup`, then `uv run just dev-pull` (needs SSH to `rylai`).
+`uv run just setup`, then `uv run just dev-pull` (needs SSH to `root@rylai` over Tailscale).
 
 ## Which instance
 
