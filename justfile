@@ -75,6 +75,25 @@ setup-proto *args:
 scenarios *args:
     cd prototype && uv run python scenarios.py {{ args }}
 
+# Load a raw backup of the old system's MySQL 5.0 database (a folder of .frm/.MYD/.MYI) into a
+# throwaway MySQL 5.5 container. Works on a copy under prototype/.dev/legacy; publishes no port.
+legacy-load dir:
+    docker rm -f pcp-legacy >/dev/null 2>&1 || true
+    rm -rf prototype/.dev/legacy && mkdir -p prototype/.dev/legacy/data/legacy
+    cp {{ quote(dir) }}/*.frm {{ quote(dir) }}/*.MYD {{ quote(dir) }}/*.MYI {{ quote(dir) }}/db.opt prototype/.dev/legacy/data/legacy/
+    docker run -d --name pcp-legacy --user "$(id -u):$(id -g)" -e MYSQL_ALLOW_EMPTY_PASSWORD=1 \
+      -v "$PWD/prototype/.dev/legacy/data:/var/lib/mysql" mysql:5.5.62 >/dev/null
+    for _ in $(seq 60); do docker exec pcp-legacy mysql -uroot -e 'select 1' legacy >/dev/null 2>&1 && exit 0; sleep 2; done; docker logs --tail 30 pcp-legacy >&2; exit 1
+
+# Run SQL from stdin against the loaded legacy database; output is UTF-8, tab-separated
+legacy-sql:
+    docker exec -i pcp-legacy mysql -uroot --default-character-set=utf8 legacy
+
+# Remove the legacy container and its copy of the data
+legacy-down:
+    docker rm -f pcp-legacy >/dev/null 2>&1 || true
+    rm -rf prototype/.dev/legacy
+
 # Create or update the GitHub labels in .github/labels.json (idempotent; needs gh and jq)
 labels-sync:
     jq -r '.groups[][] | [.name, .color, .description] | @tsv' .github/labels.json | while IFS=$'\t' read -r name color description; do gh label create "$name" --color "$color" --description "$description" --force; done
