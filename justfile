@@ -5,6 +5,9 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 
 compose := "docker compose -f prototype/docker-compose.dev.yaml"
 
+# One legacy database container per worktree, so two worktrees never query or remove each other's
+legacy := "pcp-legacy-" + file_name(justfile_directory())
+
 # List recipes
 default:
     @just --list --unsorted
@@ -78,20 +81,26 @@ scenarios *args:
 # Load a raw backup of the old system's MySQL 5.0 database (a folder of .frm/.MYD/.MYI) into a
 # throwaway MySQL 5.5 container. Works on a copy under prototype/.dev/legacy; publishes no port.
 legacy-load dir:
-    docker rm -f pcp-legacy >/dev/null 2>&1 || true
-    rm -rf prototype/.dev/legacy && mkdir -p prototype/.dev/legacy/data/legacy
-    cp {{ quote(dir) }}/*.frm {{ quote(dir) }}/*.MYD {{ quote(dir) }}/*.MYI {{ quote(dir) }}/db.opt prototype/.dev/legacy/data/legacy/
-    docker run -d --name pcp-legacy --user "$(id -u):$(id -g)" -e MYSQL_ALLOW_EMPTY_PASSWORD=1 \
+    #!/usr/bin/env bash
+    set -euo pipefail
+    src=$(realpath -e {{ quote(dir) }}); work=$(realpath -m prototype/.dev/legacy)
+    [[ $src != "$work" && $src != "$work"/* ]] || { echo "the backup must live outside $work" >&2; exit 1; }
+    {{ just_executable() }} legacy-down
+    mkdir -p prototype/.dev/legacy/data/legacy
+    cp "$src"/*.frm "$src"/*.MYD "$src"/*.MYI "$src"/db.opt prototype/.dev/legacy/data/legacy/
+    docker run -d --name {{ legacy }} --user "$(id -u):$(id -g)" -e MYSQL_ALLOW_EMPTY_PASSWORD=1 \
       -v "$PWD/prototype/.dev/legacy/data:/var/lib/mysql" mysql:5.5.62 >/dev/null
-    for _ in $(seq 60); do docker exec pcp-legacy mysql -uroot -e 'select 1' legacy >/dev/null 2>&1 && exit 0; sleep 2; done; docker logs --tail 30 pcp-legacy >&2; exit 1
+    for _ in $(seq 60); do docker exec {{ legacy }} mysql -uroot -e 'select 1' legacy >/dev/null 2>&1 && exit 0; sleep 2; done
+    docker logs --tail 30 {{ legacy }} >&2; exit 1
 
 # Run SQL from stdin against the loaded legacy database; output is UTF-8, tab-separated
 legacy-sql:
-    docker exec -i pcp-legacy mysql -uroot --default-character-set=utf8 legacy
+    docker exec -i {{ legacy }} mysql -uroot --default-character-set=utf8 legacy
 
-# Remove the legacy container and its copy of the data
+# Remove the legacy container and its copy of the data (the data only once the container is gone)
 legacy-down:
-    docker rm -f pcp-legacy >/dev/null 2>&1 || true
+    docker version >/dev/null
+    if docker container inspect {{ legacy }} >/dev/null 2>&1; then docker rm -f {{ legacy }} >/dev/null; fi
     rm -rf prototype/.dev/legacy
 
 # Create or update the GitHub labels in .github/labels.json (idempotent; needs gh and jq)
