@@ -51,7 +51,7 @@ _Spanish_: Rubro
 _Avoid_: Family, department
 
 **Category Margin**:
-The percentage a **Category** adds to a **Product**'s **Cost** to give its price on one **Price List**: today up to 55% on the **Wholesale List** and up to 120% on the **Retail List**.
+The percentage a **Category** adds to a **Product**'s **Cost** to give its price before IVA on one **Price List**: today up to 55% on the **Wholesale List** and up to 120% on the **Retail List**.
 _Spanish_: Margen del rubro
 _Avoid_: Markup per product
 
