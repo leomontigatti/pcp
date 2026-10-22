@@ -19,7 +19,7 @@ _Spanish_: Punto de venta (caja)
 _Avoid_: Fiscal printer, till, register
 
 **Warehouse**:
-The single central stock location. Receives purchases and fills **Replenishment Requests**.
+The single central stock location. Receives purchases, fills **Replenishment Requests** and sells to both **Retail Customers** and **Wholesale Customers**.
 _Spanish_: Depósito
 _Avoid_: Main store, central
 
@@ -36,9 +36,14 @@ _Spanish_: Cliente minorista, consumidor final
 _Avoid_: Walk-in
 
 **Price List**:
-A named set of unit prices per **Product**, IVA included, the same at every location. Two exist: the **Retail List** and the **Wholesale List**. Each price is the Product's cost plus its **Category Margin** for that list, never typed by hand and never rounded.
+A named set of unit prices per **Product**, the same at every location: the Product's **Cost** plus its **Category Margin** for that list, with the Product's IVA on top. Two exist: the **Retail List** and the **Wholesale List**.
 _Spanish_: Lista de precios
 _Avoid_: Tariff, pricing tier
+
+**Cost**:
+What a **Product** costs the company before IVA: the supplier's price after the supplier's own discounts, plus freight.
+_Spanish_: Costo
+_Avoid_: Purchase price, list price
 
 **Category**:
 A grouping of **Products** that carries one **Category Margin** per **Price List**.
@@ -46,9 +51,9 @@ _Spanish_: Rubro
 _Avoid_: Family, department
 
 **Category Margin**:
-The percentage a **Category** adds to a **Product**'s cost to give its price on one **Price List**: today up to 55% on the **Wholesale List** and up to 120% on the **Retail List**. Set per Category only; a Product never has its own.
+The percentage a **Category** adds to a **Product**'s **Cost** to give its price on one **Price List**: today up to 55% on the **Wholesale List** and up to 120% on the **Retail List**.
 _Spanish_: Margen del rubro
-_Avoid_: Markup per product, aumento
+_Avoid_: Markup per product
 
 **Retail List**:
 The **Price List** every **Retail Customer** pays.
@@ -59,21 +64,21 @@ The **Price List** a **Wholesale Customer** is assigned; their **Customer Discou
 _Spanish_: Lista mayorista (lista 1)
 
 **Customer Discount**:
-A percentage stored on a **Wholesale Customer** (today usually 14%) and applied by default to every line they buy. A line may override it.
+The percentage every **Wholesale Customer** gets off every line they buy (today 14%). A line may override it.
 _Spanish_: Descuento del cliente
 _Avoid_: Price list per customer, bonificación
 
 **Pack Discount**:
-An extra percentage (today 5%) added to the **Customer Discount** on a line sold in closed **Packs**: added, not compounded, so 14% and 5% give 19%.
+An extra percentage (today 5%) added to the **Customer Discount** on a **Wholesale Customer**'s line sold in closed **Packs**: added, not compounded, so 14% and 5% give 19%.
 _Spanish_: Descuento por bulto cerrado
 _Avoid_: Volume discount, quantity break
 
 **Cash Discount**:
-An extra percentage taken off a sale the customer pays in cash.
+An extra percentage (today 10%) off a sale any customer pays entirely in cash, taken after the **Customer Discount** and **Pack Discount**: 19% then 10% leaves 72.9% of the list price.
 _Spanish_: Descuento por pago en efectivo, precio contado
 _Avoid_: Journal discount
 
-**Special List** _(retired term)_:
+**Special List** _(retired term)_ — no code identifier:
 A third **Price List** for very large quantities at the **Warehouse**. Retired: only the **Retail List** and the **Wholesale List** exist.
 
 ### Stock
