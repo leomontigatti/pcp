@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 # shellcheck source-path=SCRIPTDIR source=lib/env.sh
 ENV_WRITES=1 source lib/env.sh "$@"
 [[ "$ENV_TARGET" == deployed ]] || { echo "init-db.sh is for the deployed instance; locally run ./dev-pull.sh" >&2; exit 2; }
-SSH_HOST="${SSH_HOST:-root@72.60.59.2}"
+SSH_HOST="${SSH_HOST:-root@rylai}"
 APP_UUID="${APP_UUID:-qcx1w6nrzvfsagjemdd4t6aa}"
 
 exists=$(curl -s -X POST -H "Content-Type: application/json" "$ODOO_URL/web/database/list" -d '{"jsonrpc":"2.0","method":"call","params":{}}' | python3 -c "import sys,json;print('yes' if '$ODOO_DB' in json.load(sys.stdin).get('result',[]) else 'no')")
