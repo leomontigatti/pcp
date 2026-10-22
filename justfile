@@ -6,7 +6,7 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 compose := "docker compose -f prototype/docker-compose.dev.yaml"
 
 # One legacy database container per worktree, so two worktrees never query or remove each other's
-legacy := "pcp-legacy-" + file_name(justfile_directory())
+legacy := "pcp-legacy-" + replace_regex(sha256(justfile_directory()), '^(.{12}).*$', '$1')
 
 # List recipes
 default:
@@ -99,8 +99,13 @@ legacy-sql:
 
 # Remove the legacy container and its copy of the data (the data only once the container is gone)
 legacy-down:
-    docker version >/dev/null
-    if docker container inspect {{ legacy }} >/dev/null 2>&1; then docker rm -f {{ legacy }} >/dev/null; fi
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # A failed listing aborts here; only a listing that succeeded and came back empty means "no container".
+    ids=$(docker ps -aq --filter 'name=^/{{ legacy }}$')
+    [[ -z $ids ]] || docker rm -f "$ids" >/dev/null
+    left=$(docker ps -aq --filter 'name=^/{{ legacy }}$')
+    [[ -z $left ]] || { echo "{{ legacy }} is still there; data kept" >&2; exit 1; }
     rm -rf prototype/.dev/legacy
 
 # Create or update the GitHub labels in .github/labels.json (idempotent; needs gh and jq)
