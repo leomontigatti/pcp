@@ -51,6 +51,7 @@ opening a PR with `uv run just pr-title "<title>"`. Dependabot proposes action, 
 | Run Python inside Odoo | `echo '<code>' \| uv run just dev-shell` |
 | Run tests | `test [module...]` |
 | Configure the instance | `setup-proto` |
+| Read the old system's database (a raw MySQL backup folder; never committed, never deployed) | `legacy-load <dir>`, then `echo '<sql>' \| uv run just legacy-sql`; `legacy-down` removes it |
 | Move ADHOC/OCA addons forward | `bump-addons`, review the compare URLs, then `dev-rebuild` |
 | Create or update the GitHub labels in `.github/labels.json` | `labels-sync` |
 
