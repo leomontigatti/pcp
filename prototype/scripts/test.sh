@@ -33,12 +33,19 @@ template="tmpl_$(echo "$image $BASE_MODULES" | sha256sum | cut -c1-12)"
 # Runs hold the template lock shared until they have cloned it. One run builds a missing template
 # under the exclusive lock, and keeps it through its own clone: runs that start meanwhile wait for
 # it, then find it built, and the old templates it drops are no longer being cloned.
+# A failed query stops the run: read as "missing", it would send a run holding only the shared lock
+# into the build, which drops the templates other runs are cloning.
+template_exists() {
+  local r
+  r=$(psql_q "select 1 from pg_database where datname = '$template'") || { echo "test: FAIL querying Postgres" >&2; exit 1; }
+  [[ -n $r ]]
+}
 exec 8>"${XDG_RUNTIME_DIR:-/tmp}/pcp-dev-template.lock"
 flock -s 8
-if [[ -z $(psql_q "select 1 from pg_database where datname = '$template'") ]]; then
+if ! template_exists; then
   flock 8
 fi
-if [[ -z $(psql_q "select 1 from pg_database where datname = '$template'") ]]; then
+if ! template_exists; then
   echo "test: building template $template (once per image, takes a few minutes)" >&2
   for old in $(psql_q "select datname from pg_database where datname like 'tmpl\_%'"); do
     psql_q "drop database \"$old\"" >/dev/null
