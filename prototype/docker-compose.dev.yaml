@@ -1,5 +1,7 @@
-# Local dev copy of the deployed prototype. Populate it with ./dev-pull.sh, then:
-#   docker compose -f docker-compose.dev.yaml up -d   →  http://localhost:8069
+# The machine's one dev stack, shared by every worktree: Postgres (with proto, the neutralized copy
+# of the deployed instance that dev-pull.sh writes), the filestore volume and the image. Never `up`
+# the odoo service: it is for builds and one-off runs (scripts/test.sh, dev-pull.sh). Each worktree
+# serves its own copy of proto from docker-compose.worktree.yaml, through scripts/dev.sh.
 # The image pins the same Odoo and addons commits as the deployed one; addons/ is mounted live as pcp.
 name: pcp-dev
 services:
@@ -30,16 +32,12 @@ services:
       USER: odoo
       PASSWORD: odoo
       ADMIN_PASSWD: dev
-      AUTO_UPDATE_DB: proto
-      # Upgrade, then neutralize, on every start (entrypoint.sh): this db is a copy of the deployed one.
+      # A run that sets AUTO_UPDATE_DB (dev-pull.sh, on proto) upgrades, then neutralizes, that db
+      # first (entrypoint.sh): it is a copy of the deployed one.
       NEUTRALIZE: "1"
     volumes:
       - odoo-data:/var/lib/odoo
       - ./addons:/opt/odoo-addons/pcp:ro
-    ports:
-      - "127.0.0.1:8069:8069"
-    # Serve and run crons on proto only, so test databases on the same Postgres stay untouched.
-    command: ["odoo", "--database", "proto", "--db-filter", "^proto$$"]
 
 volumes:
   db-data:

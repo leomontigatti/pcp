@@ -18,7 +18,8 @@ The contract files this repo keeps: this file, [GLOSSARY.md](GLOSSARY.md), `t3.j
 and in `docs/agents/`: [validation.md](docs/agents/validation.md), [verification.md](docs/agents/verification.md),
 [review.md](docs/agents/review.md), [issue-tracker.md](docs/agents/issue-tracker.md),
 [pull-requests.md](docs/agents/pull-requests.md), [t3-dependencies.md](docs/agents/t3-dependencies.md),
-[tdd-odoo.md](docs/agents/tdd-odoo.md) and [research.md](docs/agents/research.md). `docs/adr/` joins them with
+[tdd-odoo.md](docs/agents/tdd-odoo.md), [research.md](docs/agents/research.md) and
+[housekeeping.md](docs/agents/housekeeping.md). `docs/adr/` joins them with
 the first ADR.
 
 ## Every task
@@ -34,8 +35,8 @@ the first ADR.
 - **Commands**: run only the recipes listed in the `justfile`, as `uv run just <recipe>`. [validation.md](docs/agents/validation.md)
   is the whole surface. A command the task needs that is not a recipe means adding the recipe first, not running it
   ad hoc.
-- **Which instance**: recipes that talk to Odoo hit the **local** copy (`http://localhost:8069`). Never pass
-  `--target deployed` or `--yes-deployed` unless the user asked for that run in so many words; the deployed instance
+- **Which instance**: recipes that talk to Odoo hit the **local** copy, this worktree's own (the URL
+  `uv run just dev-up` prints). Never pass `--target deployed` or `--yes-deployed` unless the user asked for that run in so many words; the deployed instance
   carries the real CUIT and ARCA certificate, and its writes can reach ARCA. [validation.md](docs/agents/validation.md#which-instance)
   says what the flags do.
 - **Subagents**: each role's model, and how a session reaches it, is the shared `agents/models.md`; when to

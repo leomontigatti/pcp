@@ -10,8 +10,10 @@ first instead of running an ad-hoc command, so the next run is the same.
 
 ## Which instance
 
-Recipes that talk to Odoo hit the **local** dev copy (`http://localhost:8069`, `admin`/`admin`).
-The deployed instance needs `--target deployed`, and writes need `--yes-deployed` as well
+Recipes that talk to Odoo hit the **local** dev copy: this worktree's own Odoo and database, at
+the URL `uv run just dev-up` prints (`admin`/`admin`). For `--target local`, `prototype/lib/env.py`
+takes the URL and the database from that running instance, not from `prototype/.env` (one file,
+linked into every worktree), and still refuses any host but localhost. The deployed instance needs `--target deployed`, and writes need `--yes-deployed` as well
 (`prototype/lib/env.py`). Never pass `--yes-deployed` without the user asking for that run.
 
 The local copy is neutralized: it cannot reach ARCA, so anything that asks for a CAE fails there
@@ -30,8 +32,8 @@ it touched.
 prints only failures plus a summary line. Lint may auto-fix files: rerun until it passes.
 
 Tests run in throwaway databases cloned from a template that has the AR stack installed with demo
-data. The first run after an image change builds the template (a few minutes); later runs take
-seconds. Full logs stay in `prototype/.dev/test-logs/` for a week.
+data. The first run after an image change builds the template (a few minutes), and runs started
+meanwhile, from any worktree, wait for that one build; later runs take seconds. Full logs stay in `prototype/.dev/test-logs/` for a week.
 
 ## CI
 
@@ -44,11 +46,13 @@ opening a PR with `uv run just pr-title "<title>"`. Dependabot proposes action, 
 
 | Need | Recipe |
 | --- | --- |
-| Start / stop the dev stack | `dev-up` / `dev-down` |
-| Fresh data from the deployed instance | `dev-pull` |
+| Start / stop this worktree's Odoo (prints its URL) | `dev-up` / `dev-down` |
+| Copy `proto` into this worktree's database again | `dev-reset` |
+| Fresh data from the deployed instance into `proto` | `dev-pull`, then `dev-reset` |
 | Image, `repos.txt` or config changed | `dev-rebuild` |
 | See why Odoo misbehaves | `dev-logs` |
 | Run Python inside Odoo | `echo '<code>' \| uv run just dev-shell` |
+| Every worktree's database, filestore and container; remove one | `dev-ls`; `dev-rm [key]` |
 | Run tests | `test [module...]` |
 | Configure the instance | `setup-proto` |
 | Read the old system's database (a raw MySQL backup folder; never committed, never deployed) | `legacy-load <dir>`, then `echo '<sql>' \| uv run just legacy-sql`; `legacy-down` removes it |

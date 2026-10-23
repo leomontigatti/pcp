@@ -3,8 +3,6 @@
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-compose := "docker compose -f prototype/docker-compose.dev.yaml"
-
 # One legacy database container per worktree, so two worktrees never query or remove each other's
 legacy := "pcp-legacy-" + replace_regex(sha256(justfile_directory()), '^(.{12}).*$', '$1')
 
@@ -43,34 +41,43 @@ gate:
 pr-title title:
     PR_TITLE={{ quote(title) }} python3 .github/scripts/check_pr_title.py
 
-# Replace the local dev copy with a neutralized snapshot of the deployed instance
+# Replace proto, the golden copy worktrees copy from, with a neutralized snapshot of the deployed instance
 dev-pull:
     prototype/dev-pull.sh
 
-# Start the local dev stack and wait until Odoo answers
+# Start this worktree's Odoo (its own database, copied from proto the first time) and print its URL
 dev-up:
-    {{ compose }} up -d --wait db
-    {{ compose }} up -d odoo
-    for _ in $(seq 150); do curl -sf http://localhost:8069/web/health >/dev/null && exit 0; sleep 2; done; echo "odoo not healthy: just dev-logs" >&2; exit 1
+    prototype/scripts/dev.sh up
 
-# Stop the local dev stack (data kept)
+# Stop this worktree's Odoo (database and filestore kept)
 dev-down:
-    {{ compose }} down
+    prototype/scripts/dev.sh down
 
-# Rebuild the image and restart Odoo (after Dockerfile, repos.txt or config changes)
+# Re-copy this worktree's database and filestore from proto, dropping its own, then start it
+dev-reset:
+    prototype/scripts/dev.sh reset
+
+# Every worktree's database, filestore and container, live or orphan (its worktree is gone)
+dev-ls:
+    prototype/scripts/dev.sh ls
+
+# Remove a worktree's Odoo, database and filestore: this one's, or an orphan's by its dev-ls key
+dev-rm key="":
+    prototype/scripts/dev.sh rm {{ key }}
+
+# Rebuild the shared image and restart this worktree's Odoo (after Dockerfile, repos.txt or config changes)
 dev-rebuild:
-    {{ compose }} build odoo
-    {{ compose }} up -d --force-recreate odoo
+    prototype/scripts/dev.sh rebuild
 
-# Last N lines of Odoo's log
+# Last N lines of this worktree's Odoo log
 dev-logs n="200":
-    {{ compose }} logs --no-log-prefix --tail {{ n }} odoo
+    prototype/scripts/dev.sh logs {{ n }}
 
-# Odoo shell on the local db; pipe Python on stdin for non-interactive use
-dev-shell db="proto":
-    {{ compose }} exec -T odoo /entrypoint.sh odoo shell -d {{ db }} --no-http --log-level=warn
+# Odoo shell on this worktree's database; pipe Python on stdin for non-interactive use
+dev-shell:
+    prototype/scripts/dev.sh shell
 
-# Configure the instance (local by default; --target deployed --yes-deployed for Coolify)
+# Configure the instance (this worktree's local copy by default; --target deployed --yes-deployed for Coolify)
 setup-proto *args:
     cd prototype && uv run python setup-proto.py {{ args }}
 

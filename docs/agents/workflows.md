@@ -62,8 +62,14 @@ with no worktree, it leaves `prototype/.env` alone and only syncs. A worktree wi
 `prototype/.env` link means the script never ran: the fix is importing `t3.json` (project settings
 → Actions → Import from t3.json), then running the script's command by hand for that worktree.
 
-The local Odoo stack is one for the machine, and its database is the one every worktree sees
-([verification.md](./verification.md#launch)).
+The machine runs one Postgres and one Odoo image for every worktree: the shared rule that services
+run once per machine belong to the orchestrator's checkout holds for them, and any worktree's
+recipe starts Postgres when it is down. What is per worktree is the Odoo that checks a screen: its
+own copy of `proto`, served from its own `prototype/addons` on its own port, started with
+`dev-up` only while the worktree checks a screen ([verification.md](./verification.md#launch)), so
+an `implement-spec` implementer starts its own in its worktree. The tests were per worktree already:
+each run clones the template into a throwaway database. A deleted worktree leaves its database and
+filestore behind until the `housekeeping` sweep ([housekeeping.md](./housekeeping.md)).
 
 ## Documentation
 
