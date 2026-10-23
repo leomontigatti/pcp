@@ -31,8 +31,8 @@ stack_unlock
 image=$(docker image inspect -f '{{.Id}}' pcp-dev-odoo)
 template="tmpl_$(echo "$image $BASE_MODULES" | sha256sum | cut -c1-12)"
 # Runs hold the template lock shared until they have cloned it. One run builds a missing template
-# under the exclusive lock: runs that start meanwhile wait for it, then find it built, and the
-# old templates it drops are no longer being cloned.
+# under the exclusive lock, and keeps it through its own clone: runs that start meanwhile wait for
+# it, then find it built, and the old templates it drops are no longer being cloned.
 exec 8>"${XDG_RUNTIME_DIR:-/tmp}/pcp-dev-template.lock"
 flock -s 8
 if [[ -z $(psql_q "select 1 from pg_database where datname = '$template'") ]]; then
@@ -48,7 +48,6 @@ if [[ -z $(psql_q "select 1 from pg_database where datname = '$template'") ]]; t
     echo "test: FAIL building template, see prototype/$log.template" >&2; exit 1
   fi
 fi
-flock -s 8
 
 db="test_$$"
 cleanup() {

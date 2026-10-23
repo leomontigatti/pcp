@@ -33,7 +33,13 @@ container() { echo "pcp-wt-$1-odoo-1"; }
 fs() { docker run --rm -v pcp-dev_odoo-data:/var/lib/odoo --entrypoint bash postgres:16 -c "$1"; }
 # shellcheck disable=SC2016  # a Go template for docker inspect, not shell
 ports_tmpl='{{range $p, $b := .HostConfig.PortBindings}}{{range $b}}{{.HostPort}}{{"\n"}}{{end}}{{end}}'
-db_exists() { [[ -n $(psql_q "select 1 from pg_database where datname = '$1'") ]]; }
+# A failed query stops the script: read as "no database", it would send up to create_copy, whose
+# first step deletes the filestore. (Callers use it in a condition, where set -e does not reach.)
+db_exists() {
+  local r
+  r=$(psql_q "select 1 from pg_database where datname = '$1'") || die "could not query Postgres"
+  [[ -n $r ]]
+}
 host_port() {
   docker inspect -f "$ports_tmpl" "$(container "$1")" 2>/dev/null | grep . || true
 }
@@ -100,9 +106,10 @@ up() {
 }
 
 # The worktree a key belongs to: the path its database records, else its container's label.
+# A failed query fails it, rather than reading as "none recorded", which means orphan.
 worktree_of() {
   local path
-  path=$(psql_q "select coalesce(shobj_description(oid, 'pg_database'), '') from pg_database where datname = 'wt_$1'")
+  path=$(psql_q "select coalesce(shobj_description(oid, 'pg_database'), '') from pg_database where datname = 'wt_$1'") || return 1
   [[ -n $path ]] || path=$(docker inspect -f '{{index .Config.Labels "pcp.worktree"}}' "$(container "$1")" 2>/dev/null || true)
   echo "$path"
 }
