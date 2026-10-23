@@ -99,38 +99,43 @@ up() {
   echo "http://localhost:$port (db $db, admin / admin)"
 }
 
-# Every key that has a database, a filestore or a container, with the worktree it belongs to:
-# live while that worktree exists, orphan once it is gone or was never recorded.
+# The worktree a key belongs to: the path its database records, else its container's label.
+worktree_of() {
+  local path
+  path=$(psql_q "select coalesce(shobj_description(oid, 'pg_database'), '') from pg_database where datname = 'wt_$1'")
+  [[ -n $path ]] || path=$(docker inspect -f '{{index .Config.Labels "pcp.worktree"}}' "$(container "$1")" 2>/dev/null || true)
+  echo "$path"
+}
+# live while the key's worktree exists; orphan once it is gone, or when none was recorded.
+status_of() { [[ -n $1 && -d $1 ]] && echo live || echo orphan; }
+
+# Every key that has a database, a filestore or a container, one tab-separated line each.
 ls_all() {
-  local dbs files ctrs k path
-  dbs=$(dc exec -T db psql -U odoo -d postgres -AtF $'\t' -c \
-    "select datname, coalesce(shobj_description(oid, 'pg_database'), '') from pg_database where datname ~ '^wt_[0-9a-f]{12}$'")
+  local dbs files k path ctr
+  dbs=$(psql_q "select datname from pg_database where datname ~ '^wt_[0-9a-f]{12}$'")
   files=$(fs "ls /var/lib/odoo/filestore 2>/dev/null" | grep -E '^wt_[0-9a-f]{12}$' || true)
-  ctrs=$(docker ps -a --filter label=pcp.worktree \
-    --format '{{.Label "com.docker.compose.project"}}{{"\t"}}{{.State}}{{"\t"}}{{.Label "pcp.worktree"}}')
   printf 'key\tstatus\tdatabase\tfilestore\tcontainer\tworktree\n'
-  for k in $( (cut -f1 <<<"$dbs"; echo "$files"; cut -f1 <<<"$ctrs" | sed 's/^pcp-wt-/wt_/') | sed -n 's/^wt_//p' | sort -u); do
-    path=$(awk -F'\t' -v d="wt_$k" '$1 == d {print $2}' <<<"$dbs")
-    [[ -n $path ]] || path=$(awk -F'\t' -v c="pcp-wt-$k" '$1 == c {print $3}' <<<"$ctrs")
-    printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$k" "$([[ -n $path && -d $path ]] && echo live || echo orphan)" \
-      "$(grep -q "^wt_$k"$'\t' <<<"$dbs" && echo "wt_$k" || echo -)" \
-      "$(grep -qx "wt_$k" <<<"$files" && echo "wt_$k" || echo -)" \
-      "$(awk -F'\t' -v c="pcp-wt-$k" '$1 == c {print $2}' <<<"$ctrs" | grep . || echo -)" \
-      "${path:--}"
+  for k in $( (echo "$dbs"; echo "$files"
+    docker ps -a --filter label=pcp.worktree --format '{{.Label "com.docker.compose.project"}}' | sed 's/^pcp-wt-/wt_/') \
+    | sed -n 's/^wt_//p' | sort -u); do
+    path=$(worktree_of "$k")
+    ctr=$(docker inspect -f '{{.State.Status}}' "$(container "$k")" 2>/dev/null || echo -)
+    printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$k" "$(status_of "$path")" \
+      "$(grep -qx "wt_$k" <<<"$dbs" && echo "wt_$k" || echo -)" \
+      "$(grep -qx "wt_$k" <<<"$files" && echo "wt_$k" || echo -)" "$ctr" "${path:--}"
   done
 }
 
 # Remove one worktree's resources by key. Another worktree's are removed only once that worktree
 # is gone, so a sweep cannot take a live worktree's database.
 rm_key() {
-  local k=${1#wt_} path
+  local k=${1#wt_} path=
   [[ $k =~ ^[0-9a-f]{12}$ ]] || die "not a worktree key: '$k' (see: uv run just dev-ls)"
   stack_lock
   stack_up
   if [[ $k != "$key" ]]; then
-    path=$(psql_q "select coalesce(shobj_description(oid, 'pg_database'), '') from pg_database where datname = 'wt_$k'")
-    [[ -n $path ]] || path=$(docker inspect -f '{{index .Config.Labels "pcp.worktree"}}' "$(container "$k")" 2>/dev/null || true)
-    [[ -n $path && -d $path ]] && die "wt_$k belongs to $path, which still exists: run dev-rm there"
+    path=$(worktree_of "$k")
+    [[ $(status_of "$path") == orphan ]] || die "wt_$k belongs to $path, which still exists: run dev-rm there"
   fi
   PCP_KEY=$k PCP_WORKTREE=${path:-$root} wc down
   drop_copy "wt_$k"

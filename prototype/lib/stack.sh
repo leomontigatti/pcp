@@ -17,6 +17,12 @@ stack_unlock() { flock -u 9; }
 stack_up() {
   local out
   out=$(dc up -d --wait db 2>&1) || { echo "$out" >&2; return 1; }
+  # The Odoo this stack served before each worktree had its own: it holds proto open, and a copy
+  # of proto needs it unconnected.
+  docker rm -f pcp-dev-odoo-1 >/dev/null 2>&1 || true
+  # proto takes no connections (dev-pull.sh says why); this also closes one restored before that rule.
+  psql_q "select 1 from pg_database where datname = 'proto' and datallowconn" | grep -q . \
+    && psql_q 'alter database proto allow_connections false' >/dev/null
   # Created by hand for the per-worktree Odoos, which mount it as external; the labels make it
   # pcp-dev's own, so Compose takes it as created by the project.
   docker volume inspect pcp-dev_odoo-data >/dev/null 2>&1 \

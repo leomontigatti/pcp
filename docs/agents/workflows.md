@@ -67,8 +67,8 @@ run once per machine belong to the orchestrator's checkout holds for them, and a
 recipe starts Postgres when it is down. What is per worktree is the Odoo that checks a screen: its
 own copy of `proto`, served from its own `prototype/addons` on its own port, started with
 `dev-up` only while the worktree checks a screen ([verification.md](./verification.md#launch)), so
-an `implement-spec` implementer starts its own in its worktree. The tests were per worktree already:
-each run clones the template into a throwaway database. A deleted worktree leaves its database and
+an `implement-spec` implementer starts its own in its worktree. Each test run clones the template
+into a throwaway database of its own. A deleted worktree leaves its database and
 filestore behind until the `housekeeping` sweep ([housekeeping.md](./housekeeping.md)).
 
 ## Documentation

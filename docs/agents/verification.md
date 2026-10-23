@@ -10,8 +10,8 @@ deployed one carries the real CUIT, the ARCA certificate and CAE-backed invoices
 `uv run just dev-up` starts **this worktree's** Odoo and prints its URL, `http://localhost:<port>`
 (sign in as `admin`/`admin`). It serves this worktree's `prototype/addons` and its own database,
 `wt_<key>`, a copy of `proto` with its filestore made the first time; the key and the port derive
-from the worktree's path, so two worktrees never share either, and the port stays the same across
-restarts. Run it from the worktree whose code you are checking, never from another one; it is
+from the worktree's path, so two worktrees never share either, and the port usually stays the same
+across restarts (when two keys start from the same port, the second gets the next free one). Run it from the worktree whose code you are checking, never from another one; it is
 idempotent and quick (seconds once the copy exists), so rerun it to read the URL again.
 
 What one machine shares, every worktree's Odoo runs on: one Postgres (with `proto`, the test
