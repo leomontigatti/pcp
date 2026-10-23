@@ -106,11 +106,14 @@ up() {
 }
 
 # The worktree a key belongs to: the path its database records, else its container's label.
-# A failed query fails it, rather than reading as "none recorded", which means orphan.
+# A failed query or listing fails it, rather than reading as "none recorded", which means orphan.
+# Only a listing that succeeded and came back empty means "no container".
 worktree_of() {
   local path
   path=$(psql_q "select coalesce(shobj_description(oid, 'pg_database'), '') from pg_database where datname = 'wt_$1'") || return 1
-  [[ -n $path ]] || path=$(docker inspect -f '{{index .Config.Labels "pcp.worktree"}}' "$(container "$1")" 2>/dev/null || true)
+  if [[ -z $path ]]; then
+    path=$(docker ps -a --filter "name=^/$(container "$1")$" --format '{{.Label "pcp.worktree"}}') || return 1
+  fi
   echo "$path"
 }
 # live while the key's worktree exists; orphan once it is gone, or when none was recorded.
