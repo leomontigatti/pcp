@@ -126,10 +126,10 @@ ls_all() {
     docker ps -a --filter label=pcp.worktree --format '{{.Label "com.docker.compose.project"}}' | sed 's/^pcp-wt-/wt_/') \
     | sed -n 's/^wt_//p' | sort -u); do
     path=$(worktree_of "$k")
-    ctr=$(docker inspect -f '{{.State.Status}}' "$(container "$k")" 2>/dev/null || echo -)
+    ctr=$(docker ps -a --filter "name=^/$(container "$k")$" --format '{{.State}}')
     printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$k" "$(status_of "$path")" \
       "$(grep -qx "wt_$k" <<<"$dbs" && echo "wt_$k" || echo -)" \
-      "$(grep -qx "wt_$k" <<<"$files" && echo "wt_$k" || echo -)" "$ctr" "${path:--}"
+      "$(grep -qx "wt_$k" <<<"$files" && echo "wt_$k" || echo -)" "${ctr:--}" "${path:--}"
   done
 }
 
