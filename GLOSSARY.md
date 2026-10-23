@@ -41,7 +41,7 @@ _Spanish_: Lista de precios
 _Avoid_: Tariff, pricing tier
 
 **Cost**:
-What a **Product** costs the company before IVA: the supplier's price after the supplier's own discounts, plus freight.
+What a **Product** costs the company before IVA: the last purchase's supplier price after that supplier's own discounts, plus freight (today a flat 5%). The cost to replace it, never an average of older stock.
 _Spanish_: Costo
 _Avoid_: Purchase price, list price
 
