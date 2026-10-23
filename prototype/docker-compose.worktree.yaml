@@ -1,0 +1,37 @@
+# One worktree's Odoo for checking screens. scripts/dev.sh runs it as compose project
+# pcp-wt-<key>, with PCP_KEY, PCP_PORT and PCP_WORKTREE set; never start it by hand.
+# It runs on the shared stack (docker-compose.dev.yaml): its Postgres, filestore volume and image.
+services:
+  odoo:
+    image: pcp-dev-odoo
+    pull_policy: never
+    environment:
+      HOST: db
+      PORT: 5432
+      USER: odoo
+      PASSWORD: odoo
+      ADMIN_PASSWD: dev
+      AUTO_UPDATE_DB: wt_${PCP_KEY:?}
+      # Upgrade, then neutralize, on every start (entrypoint.sh): the db is a copy of proto, itself
+      # a copy of the deployed one.
+      NEUTRALIZE: "1"
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./addons:/opt/odoo-addons/pcp:ro
+    ports:
+      - "127.0.0.1:${PCP_PORT:-0}:8069"
+    labels:
+      pcp.worktree: ${PCP_WORKTREE:?}
+    networks: [pcp-dev]
+    # Serve and run crons on this worktree's db only.
+    command: ["odoo", "--database", "wt_${PCP_KEY}", "--db-filter", "^wt_${PCP_KEY}$$"]
+
+networks:
+  pcp-dev:
+    name: pcp-dev_default
+    external: true
+
+volumes:
+  odoo-data:
+    name: pcp-dev_odoo-data
+    external: true

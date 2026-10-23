@@ -2,3 +2,6 @@
 # The check-tool-path hook warns when one is missing; see docs/agents/agent-configuration.md.
 uv
 docker
+flock
+ss
+curl

@@ -1,6 +1,7 @@
 # shellcheck shell=bash
 # Bash twin of lib/env.py: `source lib/env.sh "$@"` loads .env (--target local, the default) or
-# .env.deployed (--target deployed). Callers that write set ENV_WRITES=1 first; deployed writes
+# .env.deployed (--target deployed); for local, ODOO_URL and ODOO_DB then come from this worktree's
+# running Odoo (scripts/dev.sh env). Callers that write set ENV_WRITES=1 first; deployed writes
 # then also need --yes-deployed. The URL must agree with the target.
 ENV_TARGET=local
 _yes=0
@@ -24,6 +25,10 @@ set -a
 # shellcheck source=/dev/null
 source "$_file"
 set +a
+if [[ "$ENV_TARGET" == local ]]; then
+  _wt=$("$(dirname "${BASH_SOURCE[0]}")/../scripts/dev.sh" env) || exit 2
+  while IFS='=' read -r _k _v; do export "$_k=$_v"; done <<<"$_wt"
+fi
 _host=$(python3 -I -c 'import sys, urllib.parse; print(urllib.parse.urlparse(sys.argv[1]).hostname)' "$ODOO_URL")
 case "$_host" in localhost | 127.0.0.1) _local=local ;; *) _local=deployed ;; esac
 if [[ "$_local" != "$ENV_TARGET" ]]; then
@@ -33,4 +38,4 @@ if [[ "${ENV_WRITES:-0}" == 1 && "$ENV_TARGET" == deployed && "$_yes" != 1 ]]; t
   echo "refusing to write to the deployed instance without --yes-deployed" >&2; exit 2
 fi
 echo ":: target $ENV_TARGET ($ODOO_URL, db $ODOO_DB)"
-unset _yes _args _i _file _host _local
+unset _yes _args _i _file _host _local _wt _k _v

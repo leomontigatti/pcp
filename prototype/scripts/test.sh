@@ -9,8 +9,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 BASE_MODULES=l10n_ar_fiscal_ws,l10n_ar_tax,point_of_sale,sale_management,stock,purchase
-dc() { docker compose -f docker-compose.dev.yaml "$@"; }
-psql_q() { dc exec -T db psql -U odoo -d postgres -Atc "$1"; }
+# shellcheck source-path=SCRIPTDIR/.. source=lib/stack.sh
+source lib/stack.sh
 odoo_run() { dc run --rm --no-deps -T -e AUTO_UPDATE_DB= odoo odoo "$@"; }
 
 mods=("$@")
@@ -24,11 +24,20 @@ tags="${TEST_TAGS:-$(printf '/%s,' "${mods[@]}" | sed 's/,$//')}"
 mkdir -p .dev/test-logs
 find .dev/test-logs -type f -mtime +7 -delete
 log=".dev/test-logs/$(date +%Y%m%d-%H%M%S).log"
-dc up -d --wait db >/dev/null 2>&1
+stack_lock
+stack_up
+stack_unlock
 
-image=$(docker image inspect -f '{{.Id}}' pcp-dev-odoo 2>/dev/null || true)
-[[ -n "$image" ]] || { dc build odoo >/dev/null; image=$(docker image inspect -f '{{.Id}}' pcp-dev-odoo); }
+image=$(docker image inspect -f '{{.Id}}' pcp-dev-odoo)
 template="tmpl_$(echo "$image $BASE_MODULES" | sha256sum | cut -c1-12)"
+# Runs hold the template lock shared until they have cloned it. One run builds a missing template
+# under the exclusive lock, and keeps it through its own clone: runs that start meanwhile wait for
+# it, then find it built, and the old templates it drops are no longer being cloned.
+exec 8>"${XDG_RUNTIME_DIR:-/tmp}/pcp-dev-template.lock"
+flock -s 8
+if [[ -z $(psql_q "select 1 from pg_database where datname = '$template'") ]]; then
+  flock 8
+fi
 if [[ -z $(psql_q "select 1 from pg_database where datname = '$template'") ]]; then
   echo "test: building template $template (once per image, takes a few minutes)" >&2
   for old in $(psql_q "select datname from pg_database where datname like 'tmpl\_%'"); do
@@ -49,6 +58,7 @@ trap cleanup EXIT
 psql_q "select pg_terminate_backend(pid) from pg_stat_activity where datname = '$template'" >/dev/null
 psql_q "create database \"$db\" template \"$template\"" >/dev/null
 dc run --rm --no-deps -T --entrypoint cp odoo -a "/var/lib/odoo/filestore/$template" "/var/lib/odoo/filestore/$db" >/dev/null 2>&1 || true
+flock -u 8
 
 installed=$(dc exec -T db psql -U odoo -d "$db" -Atc \
   "select name from ir_module_module where state = 'installed' and name = any(string_to_array('$csv', ','))" | paste -sd,)
