@@ -28,8 +28,8 @@ it touched.
 
 ## Before committing
 
-`uv run just gate`. It runs every linter, then the tests of every addon in `prototype/addons`, and
-prints only failures plus a summary line. Lint may auto-fix files: rerun until it passes.
+`uv run just gate`. It runs every linter, then the unit tests in `prototype/legacy` and the tests of every
+addon in `prototype/addons`, and prints only failures plus a summary line. Lint may auto-fix files: rerun until it passes.
 
 Tests run in throwaway databases cloned from a template that has the AR stack installed with demo
 data. The first run after an image change builds the template (a few minutes), and runs started
@@ -38,7 +38,7 @@ meanwhile, from any worktree, wait for that one build; later runs take seconds. 
 ## CI
 
 `.github/workflows/ci.yml` runs the same recipes on every PR: `checks` (all pre-commit hooks, plus
-gitleaks over the PR's commits) and `test`. `pr-title.yml` checks the title; check one before
+gitleaks over the PR's commits, and `legacy-test`) and `test`. `pr-title.yml` checks the title; check one before
 opening a PR with `uv run just pr-title "<title>"`. Dependabot proposes action, uv, image-pip and
 `odoo:19.0` digest bumps after a 7-day cooldown; addons pins move only through `bump-addons`.
 
@@ -56,6 +56,7 @@ opening a PR with `uv run just pr-title "<title>"`. Dependabot proposes action, 
 | Run tests | `test [module...]` |
 | Configure the instance | `setup-proto` |
 | Read the old system's database (a raw MySQL backup folder; never committed, never deployed) | `legacy-load <dir>`, then `echo '<sql>' \| uv run just legacy-sql`; `legacy-down` removes it |
+| Propose the catalog review CSVs (#26) from the loaded legacy database | `catalog-review <out-dir>`; its tests: `legacy-test` |
 | Move ADHOC/OCA addons forward | `bump-addons`, review the compare URLs, then `dev-rebuild` |
 | Create or update the GitHub labels in `.github/labels.json` | `labels-sync` |
 

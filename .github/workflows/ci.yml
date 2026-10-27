@@ -28,6 +28,8 @@ jobs:
       - run: uv sync --locked
       - name: Lint (pre-commit, all files)
         run: uv run --locked pre-commit run --all-files --show-diff-on-failure
+      - name: Legacy-data script tests
+        run: uv run just legacy-test
       # The pre-commit gitleaks hook scans staged changes only, so CI scans the commits instead.
       - name: Secrets in this PR's commits (gitleaks)
         env:
