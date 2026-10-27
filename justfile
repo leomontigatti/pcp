@@ -25,7 +25,7 @@ lint:
 test *modules:
     prototype/scripts/test.sh {{ modules }}
 
-# Everything that must pass before a commit is done: lint, then tests. Failures only.
+# Everything that must pass before a commit is done: lint, then the legacy and Odoo tests. Failures only.
 gate:
     #!/usr/bin/env bash
     set -uo pipefail
@@ -34,6 +34,7 @@ gate:
       grep -vE '\.\.\.+(Passed|\(no files to check\)Skipped)$' <<<"$out"; fail=1
     fi
     [[ $fail == 0 ]] && echo "lint: PASS" || echo "lint: FAIL (files may have been auto-fixed; rerun)"
+    out=$(python3 -I -m unittest discover -s prototype/legacy -t prototype/legacy 2>&1) && echo "legacy-test: PASS" || { echo "$out"; fail=1; }
     prototype/scripts/test.sh || fail=1
     [[ $fail == 0 ]] && echo "gate: PASS" || { echo "gate: FAIL"; exit 1; }
 
@@ -103,6 +104,15 @@ legacy-load dir:
 # Run SQL from stdin against the loaded legacy database; output is UTF-8, tab-separated
 legacy-sql:
     docker exec -i {{ legacy }} mysql -uroot --default-character-set=utf8 legacy
+
+# Propose the catalog review (#26) from the loaded legacy database: variant groups of the Warehouse
+# catalog and Warehouse/Alberdi duplicates, as CSVs and a note for the client in <out>. Never touches Odoo.
+catalog-review out:
+    {{ just_executable() }} legacy-sql < prototype/legacy/catalog.sql | python3 -I prototype/legacy/catalog_review.py {{ quote(out) }}
+
+# Unit tests of the legacy-data scripts in prototype/legacy (no database needed)
+legacy-test:
+    python3 -I -m unittest discover -s prototype/legacy -t prototype/legacy
 
 # Remove the legacy container and its copy of the data (the data only once the container is gone)
 legacy-down:

@@ -1,0 +1,82 @@
+REVISIÓN DEL CATÁLOGO ANTES DE PASARLO AL SISTEMA NUEVO
+========================================================
+
+Antes de cargar los artículos en el sistema nuevo hay que decidir qué códigos del sistema viejo son
+en realidad un mismo producto. Esto se decide una sola vez y conviene hacerlo bien ahora: después
+el sistema permite agregar variantes a un producto, pero no juntar dos productos que ya tienen
+ventas y stock.
+
+Les mandamos dos planillas. Son una PROPUESTA hecha automáticamente a partir de las descripciones:
+nada se aplica sin que ustedes lo confirmen.
+
+Cómo abrirlas: son archivos CSV separados por punto y coma (;), con acentos (UTF-8). Se abren con
+doble clic en Excel o LibreOffice. Si LibreOffice pregunta, elegir "Unicode (UTF-8)" y separador
+"Punto y coma". Al guardar, mantener el formato CSV con punto y coma.
+
+
+1. variantes_deposito.csv: los artículos del Depósito (Papelera Brasil)
+------------------------------------------------------------------------
+
+Tiene una fila por cada código activo del Depósito. Arriba están los grupos propuestos; abajo, los
+códigos sin grupo.
+
+Un GRUPO es un mismo producto que cambia solo en el color, la medida u otro detalle. En el sistema
+nuevo cada grupo será UN producto con VARIANTES. Por ejemplo, "Bolsa Manija" en Blanca y Kraft, en
+varias medidas: un producto, con variantes Color y Medida. Cada código conserva su número viejo.
+
+Columnas que pueden editar:
+- grupo: el número del grupo. Para sacar un código de un grupo, borren el número. Para sumar un
+  código a un grupo, escriban el número de ese grupo. Para juntar dos grupos en uno, pongan a
+  todas sus filas el mismo número.
+- producto_propuesto: el nombre del producto, sin el color ni la medida. Corríjanlo si quieren otro.
+  Todas las filas de un grupo deben tener el mismo nombre.
+- atributo y valor: qué cambia entre las variantes y su valor en esa fila (por ejemplo, atributo
+  "Color" y valor "Rojo"). Usen siempre el mismo atributo dentro de un grupo.
+- atributo_2 y valor_2: solo si las variantes cambian en dos cosas (por ejemplo Color y Medida).
+- confirmado: escriban SI en cada fila de un grupo que esté bien, o NO si ese código no va en el
+  grupo.
+
+Qué significa "confirmado":
+- SI: el código entra en el grupo, con el nombre, atributo y valor que dice su fila.
+- NO o vacío: el código queda como producto aparte, igual que hoy.
+  Un grupo se arma solo con las filas marcadas SI; si quedan menos de dos, no hay grupo.
+
+Los códigos sin grupo no hace falta revisarlos: cada uno será un producto, como hoy.
+
+Columnas solo para leer (ayudan a decidir, no se cambian):
+- confianza: Alta, Media o Baja, según cuánto se parecen los códigos del grupo. Empiecen por Alta:
+  suelen estar bien y se confirman rápido. Baja son dudosos, revísenlos con cuidado.
+- motivo: por qué se propuso el grupo: qué palabra cambia y si coinciden rubro, IVA, costo,
+  proveedor y unidad de bulto.
+- costo, bonificaciones, iva, unidades_bulto, proveedor, rubro: datos del sistema viejo.
+- duplicado_en_alberdi: si el mismo artículo parece existir también con un código de Alberdi
+  (ver la planilla 2).
+
+Un grupo nunca mezcla rubros ni tasas de IVA: el sistema nuevo los fija por producto, no por variante.
+
+
+2. duplicados_deposito_alberdi.csv: el mismo artículo en el Depósito y en Alberdi
+---------------------------------------------------------------------------------
+
+Alberdi tiene su propio catálogo, y muchos artículos están cargados dos veces: con un código del
+Depósito y con otro de Alberdi. Cada fila propone que un código del Depósito y uno de Alberdi son el
+mismo artículo. Si lo son, en el sistema nuevo serán UN solo producto, que se encuentra por
+cualquiera de los dos códigos.
+
+Columnas que pueden editar:
+- confirmado: SI si son el mismo artículo; NO o vacío si no lo son (quedan como dos productos).
+- codigo_alberdi: si el código de Alberdi propuesto está mal pero conocen el correcto, escríbanlo y
+  marquen SI.
+
+Columnas solo para leer:
+- similitud y confianza: cuánto se parecen las dos descripciones. Alta: las mismas palabras. Baja:
+  revisar con cuidado, sobre todo la marca.
+- motivo: qué coincide y qué palabras aparecen solo en una de las dos descripciones.
+- costo_deposito y costo_alberdi: a modo de referencia. Muchos costos de Alberdi están
+  desactualizados, por eso no se usan para comparar.
+
+Los artículos de Alberdi que no aparecen acá se cargan cada uno como producto propio.
+
+
+Cuando terminen, devuelvan las dos planillas con la columna "confirmado" completa. Si un caso les
+genera dudas, pónganle NO y anótenlo aparte: se puede revisar después.
