@@ -15,12 +15,10 @@ BASE_MODULES=l10n_ar_fiscal_ws,l10n_ar_tax,point_of_sale,sale_management,stock,p
 source lib/stack.sh
 odoo_run() { dc run --rm --no-deps -T -e AUTO_UPDATE_DB= odoo-test odoo "$@"; }
 
-# The test image is tagged by its inputs (the dev image and its own files), so worktrees whose
-# Dockerfile.test differs each keep their own instead of retagging one. Call holding stack_lock.
+# Build the test image this worktree's files name (test_image_key) if missing. Call holding stack_lock.
 test_image_up() {
-  local base out
-  base=$(docker image inspect -f '{{.Id}}' pcp-dev-odoo)
-  PCP_TEST_KEY=$( (echo "$base"; cat Dockerfile.test requirements-test.txt) | sha256sum | cut -c1-12)
+  local out
+  PCP_TEST_KEY=$(test_image_key)
   export PCP_TEST_KEY
   docker image inspect "pcp-dev-odoo-test:$PCP_TEST_KEY" >/dev/null 2>&1 && return
   echo "building the pcp-dev-odoo-test image (after a change to the dev image or Dockerfile.test, takes a minute)" >&2

@@ -58,6 +58,7 @@ opening a PR with `uv run just pr-title "<title>"`. Dependabot proposes action, 
 | Run Python inside Odoo | `echo '<code>' \| uv run just dev-shell` |
 | Every worktree's database, filestore and container; remove one | `dev-ls`; `dev-rm [key]` |
 | Run tests | `test [module...]` |
+| Disk filling with old test images (each `dev-rebuild` or `Dockerfile.test` change leaves one) | `test-prune`, while no test runs |
 | Configure the instance | `setup-proto` |
 | Read the old system's database (a raw MySQL backup folder; never committed, never deployed) | `legacy-load <dir>`, then `echo '<sql>' \| uv run just legacy-sql`; `legacy-down` removes it |
 | Propose the catalog review CSVs (#26) from the loaded legacy database | `catalog-review <out-dir>`; its tests: `legacy-test` |

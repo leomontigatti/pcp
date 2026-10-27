@@ -13,6 +13,14 @@ stack_lock() {
 }
 stack_unlock() { flock -u 9; }
 
+# The tag of the test image this worktree's files build (Dockerfile.test, on the dev image): one per
+# set of inputs, so worktrees whose Dockerfile.test differs never retag each other's.
+test_image_key() {
+  local base
+  base=$(docker image inspect -f '{{.Id}}' pcp-dev-odoo)
+  (echo "$base"; cat Dockerfile.test requirements-test.txt) | sha256sum | cut -c1-12
+}
+
 # Postgres up and healthy, the filestore volume and the image present. Call holding stack_lock.
 stack_up() {
   local out

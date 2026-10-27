@@ -11,6 +11,7 @@
 #   scripts/dev.sh shell      Odoo shell on this worktree's database; Python on stdin
 #   scripts/dev.sh logs [n]   last n lines of this worktree's Odoo log
 #   scripts/dev.sh rebuild    rebuild the shared image, then recreate this worktree's Odoo if it runs
+#   scripts/dev.sh prune-tests  remove the test images but the one this worktree's files build
 set -euo pipefail
 cd "$(dirname "$0")/.."
 # shellcheck source-path=SCRIPTDIR/.. source=lib/stack.sh
@@ -182,5 +183,16 @@ case "${1:-}" in
     stack_unlock
     if [[ -n $(host_port "$key") ]]; then up --force-recreate; fi
     ;;
-  *) die "usage: scripts/dev.sh up|down|reset|rm [key]|ls|env|shell|logs [n]|rebuild" ;;
+  prune-tests)
+    # Each dev image rebuild or Dockerfile.test change leaves the previous test image (scripts/test.sh).
+    # A worktree whose image goes builds it again on its next test run.
+    stack_lock
+    keep=$(test_image_key)
+    for tag in $(docker image ls --format '{{.Tag}}' pcp-dev-odoo-test); do
+      # One a running test uses is refused (docker says so), and the rest still go.
+      [[ $tag == "$keep" ]] || docker image rm "pcp-dev-odoo-test:$tag" || true
+    done
+    stack_unlock
+    ;;
+  *) die "usage: scripts/dev.sh up|down|reset|rm [key]|ls|env|shell|logs [n]|rebuild|prune-tests" ;;
 esac
