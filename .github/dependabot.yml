@@ -1,5 +1,5 @@
 # Weekly, after a 7-day cooldown on new releases; minor/patch grouped into one PR per ecosystem.
-# Titles carry a Conventional Commit prefix so they pass the PR title check.
+# Titles carry a Conventional Commit prefix; the PR title check lets Dependabot's capital "Bump" through.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -22,6 +22,10 @@ updates:
       default-days: 7
     commit-message:
       prefix: build
+    # The uv fetcher also reads *.txt in every top-level directory, and the pip entry's ignore does
+    # not reach this entry: without this it bumps prototype/requirements.txt, xlrd and xlsxwriter too.
+    exclude-paths:
+      - prototype/**
     groups:
       dev-tools:
         update-types: [minor, patch]
