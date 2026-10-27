@@ -205,33 +205,45 @@ for code, num, name in [("DEP", 1, "Depósito"), ("LOCC", 2, "Local Centro"), ("
         dom = [["type", "=", "sale"], ["l10n_ar_afip_pos_number", "=", num]]
     jr[code] = upsert("account.journal", dom, vals)
 
-print(":: price lists")
+print(":: pcp_pricing addon")  # the Price Lists below compute from its Cost and Category Margins
+call("ir.module.module", "update_list")
+pricing = one("ir.module.module", [["name", "=", "pcp_pricing"]])
+if call("ir.module.module", "read", [pricing], fields=["state"])[0]["state"] != "installed":
+    call("ir.module.module", "button_immediate_install", [pricing])
+    print("  + installed")
+
+print(":: price lists: Retail and Wholesale, Cost plus the Category Margin")
 pl = {}
-for name in ["Minorista", "Mayorista", "Especial"]:
-    pl[name] = upsert("product.pricelist", [["name", "=", name]], {"name": name, "currency_id": 19})
-for stale in call("product.pricelist", "search", [["name", "=", "Predeterminado"]]):
+for name, kind in [("Minorista", "retail"), ("Mayorista", "wholesale")]:
+    pl[name] = upsert("product.pricelist", [["name", "=", name]], {"name": name, "currency_id": 19, "list_kind": kind})
+    stale = call(
+        "product.pricelist.item", "search", [["pricelist_id", "=", pl[name]], ["applied_on", "!=", "3_global"]]
+    )
+    if stale:  # per-product fixed prices from before the lists computed from Cost
+        call("product.pricelist.item", "unlink", stale)
+    upsert(
+        "product.pricelist.item",
+        [["pricelist_id", "=", pl[name]], ["applied_on", "=", "3_global"]],
+        {"pricelist_id": pl[name], "applied_on": "3_global", "compute_price": "formula", "base": "category_margin"},
+    )
+# Retired: Especial (no Special List any more) and "Mayorista -14%" (the Customer Discount replaced it).
+for stale in call("product.pricelist", "search", [["name", "in", ["Predeterminado", "Especial", "Mayorista -14%"]]]):
     call("product.pricelist", "write", [stale], {"active": False})
-pl["Mayorista -14%"] = upsert(
-    "product.pricelist", [["name", "=", "Mayorista -14%"]], {"name": "Mayorista -14%", "currency_id": 19}
-)
-upsert(
-    "product.pricelist.item",
-    [["pricelist_id", "=", pl["Mayorista -14%"]], ["applied_on", "=", "3_global"]],
-    {
-        "pricelist_id": pl["Mayorista -14%"],
-        "applied_on": "3_global",
-        "compute_price": "percentage",
-        "base": "pricelist",
-        "base_pricelist_id": pl["Mayorista"],
-        "percent_price": 14,
-    },
-)
+
+print(":: categories and their margins (wholesale, retail)")
+categ = {}
+for name, wholesale, retail in [("Papelería", 55, 120), ("Descartables", 45, 100)]:
+    categ[name] = upsert(
+        "product.category",
+        [["name", "=", name]],
+        {"name": name, "wholesale_margin": wholesale, "retail_margin": retail},
+    )
 
 print(":: products")  # stock in the smallest unit sold; the box is a packaging UoM with its own barcode
 prods = {}
 
 
-def product(name, barcode, retail, wholesale, special, pack=None):
+def product(name, barcode, category, cost, pack=None):
     tid = upsert(
         "product.template",
         [["barcode", "=", barcode]],
@@ -240,27 +252,18 @@ def product(name, barcode, retail, wholesale, special, pack=None):
             "type": "consu",
             "is_storable": True,
             "barcode": barcode,
-            "list_price": retail,
+            "categ_id": categ[category],
+            "replacement_cost": cost,
+            "available_in_pos": True,
             "uom_id": UNIT,
             "taxes_id": [[6, 0, [TAX_S21]]],
             "supplier_taxes_id": [[6, 0, [TAX_P21]]],
         },
     )
     pid = call("product.product", "search", [["product_tmpl_id", "=", tid]])[0]
-    for lname, price in [("Minorista", retail), ("Mayorista", wholesale), ("Especial", special)]:
-        upsert(
-            "product.pricelist.item",
-            [["pricelist_id", "=", pl[lname]], ["product_tmpl_id", "=", tid]],
-            {
-                "pricelist_id": pl[lname],
-                "applied_on": "1_product",
-                "product_tmpl_id": tid,
-                "compute_price": "fixed",
-                "fixed_price": price,
-            },
-        )
     if pack:
         pname, qty, pbarcode = pack
+        upsert("product.product", [["id", "=", pid]], {"pack_size": qty})
         uom = upsert(
             "uom.uom", [["name", "=", pname]], {"name": pname, "relative_uom_id": UNIT, "relative_factor": qty}
         )
@@ -274,11 +277,15 @@ def product(name, barcode, retail, wholesale, special, pack=None):
     return tid, pid
 
 
-product("Resma A4 75g", "7790001000011", 9500, 7600, 7000, pack=("Caja x10 resmas", 10, "17790001000018"))
+product("Resma A4 75g", "7790001000011", "Papelería", 4000, pack=("Caja x10 resmas", 10, "17790001000018"))
 product(
-    "Vasos plásticos 180cc x50", "7790002000028", 3200, 2500, 2300, pack=("Bolsa x20 paquetes", 20, "17790002000025")
+    "Vasos plásticos 180cc x50",
+    "7790002000028",
+    "Descartables",
+    1300,
+    pack=("Bolsa x20 paquetes", 20, "17790002000025"),
 )
-product("Bolígrafo azul", "7790003000035", 450, 320, 290, pack=("Caja x50 bolígrafos", 50, "17790003000032"))
+product("Bolígrafo azul", "7790003000035", "Papelería", 160, pack=("Caja x50 bolígrafos", 50, "17790003000032"))
 
 print(":: partners")
 upsert(
@@ -290,7 +297,8 @@ upsert(
         "vat": cuit("30", 71000002),
         "l10n_latam_identification_type_id": CUIT_TYPE,
         "l10n_ar_afip_responsibility_type_id": RI,
-        "property_product_pricelist": pl["Mayorista -14%"],
+        "property_product_pricelist": pl["Mayorista"],
+        "customer_discount": 14,
         "customer_rank": 1,
     },
 )
@@ -326,7 +334,7 @@ upsert(
 
 print(":: points of sale")
 for code, name in [("LOCC", "Caja Local Centro"), ("LOCN", "Caja Local Norte"), ("DEP", "Caja Depósito")]:
-    avail = [pl["Minorista"], pl["Mayorista"], pl["Mayorista -14%"]] + ([pl["Especial"]] if code == "DEP" else [])
+    avail = [pl["Minorista"], pl["Mayorista"]]  # every location sells at both lists
     upsert(
         "pos.config",
         [["name", "=", name]],

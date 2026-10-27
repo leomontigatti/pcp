@@ -13,7 +13,7 @@ Nothing here is production. No customer data goes in.
 - `repos.txt` pins each addons repo to a commit; `scripts/bump-addons.sh` moves pins to the branch head. The `Dockerfile` pins `odoo:19.0` by digest.
 - `config/odoo.conf` runs Odoo threaded behind Coolify's Traefik.
 - `docker-compose.yaml` is what Coolify deploys: Postgres 16 + Odoo.
-- `addons/pcp/` is empty for now. Project addons go here later.
+- `addons/` holds the project addons, mounted as `pcp` on the addons path: `pcp_pricing` so far.
 
 ## Deploy on Coolify
 
@@ -44,7 +44,8 @@ Nothing here is production. No customer data goes in.
    the fallback runs. Without a certificate a WSFE journal cannot post at all; hence the toggle.
 4. Fiscal Points: one journal per point of sale: `0001` Depósito (WSFE), `0002` Local A, `0003` Local B.
 5. Warehouses: Depósito, Local A, Local B. One POS config per local, bound to its journal.
-6. Price lists: Minorista, Mayorista, Especial (warehouse only), "Mayorista -14%".
+6. Price lists: Minorista and Mayorista, both computed from each product's Cost plus its category's margin
+   (`addons/pcp_pricing`), and both available at every location.
 7. Products: a ream (unit, packaging "Caja x10" with its own barcode), a sleeve of cups.
 
 ## Scripts

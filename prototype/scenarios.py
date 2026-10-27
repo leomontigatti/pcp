@@ -120,7 +120,7 @@ print(
     ],
 )
 
-print("== 1. Factura A from Depósito: Rivera buys 10 boxes of reams (100 units) on Mayorista -14%")
+print("== 1. Factura A from Depósito: Rivera buys 10 boxes of reams (100 units) on Mayorista, 14% + 5% Pack Discount")
 so = first(
     call(
         "sale.order",
