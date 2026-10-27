@@ -40,9 +40,9 @@ services:
       - ./addons:/opt/odoo-addons/pcp:ro
 
   # The odoo image plus a browser for HttpCase tours (Dockerfile.test, built by scripts/test.sh),
-  # with test-addons/ on its addons path.
+  # with test-addons/ on its addons path. Tagged by its inputs, which test.sh passes as PCP_TEST_KEY.
   odoo-test:
-    image: pcp-dev-odoo-test
+    image: pcp-dev-odoo-test:${PCP_TEST_KEY:-unset}
     pull_policy: never
     # Odoo as PID 1 would not reap the processes Chrome leaves (chrome_crashpad), and a test fails on
     # a leftover child process.

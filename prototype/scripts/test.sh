@@ -15,15 +15,17 @@ BASE_MODULES=l10n_ar_fiscal_ws,l10n_ar_tax,point_of_sale,sale_management,stock,p
 source lib/stack.sh
 odoo_run() { dc run --rm --no-deps -T -e AUTO_UPDATE_DB= odoo-test odoo "$@"; }
 
-# Build the test image when the dev image or the test image's own files changed since it was built.
-# Call holding stack_lock.
+# The test image is tagged by its inputs (the dev image and its own files), so worktrees whose
+# Dockerfile.test differs each keep their own instead of retagging one. Call holding stack_lock.
 test_image_up() {
-  local key out
-  key=$( (docker image inspect -f '{{.Id}}' pcp-dev-odoo; cat Dockerfile.test requirements-test.txt) | sha256sum | cut -c1-12)
-  [[ $(docker image inspect -f '{{index .Config.Labels "pcp.test-key"}}' pcp-dev-odoo-test 2>/dev/null) == "$key" ]] && return
+  local base out
+  base=$(docker image inspect -f '{{.Id}}' pcp-dev-odoo)
+  PCP_TEST_KEY=$( (echo "$base"; cat Dockerfile.test requirements-test.txt) | sha256sum | cut -c1-12)
+  export PCP_TEST_KEY
+  docker image inspect "pcp-dev-odoo-test:$PCP_TEST_KEY" >/dev/null 2>&1 && return
   echo "building the pcp-dev-odoo-test image (once per dev image, takes a minute)" >&2
   out=$(tar -c Dockerfile.test requirements-test.txt \
-    | docker build -q -f Dockerfile.test --label "pcp.test-key=$key" -t pcp-dev-odoo-test - 2>&1) \
+    | docker build -q -f Dockerfile.test -t "pcp-dev-odoo-test:$PCP_TEST_KEY" - 2>&1) \
     || { echo "$out" >&2; return 1; }
 }
 
@@ -43,7 +45,7 @@ stack_up
 test_image_up
 stack_unlock
 
-image=$(docker image inspect -f '{{.Id}}' pcp-dev-odoo-test)
+image=$(docker image inspect -f '{{.Id}}' "pcp-dev-odoo-test:$PCP_TEST_KEY")
 template="tmpl_$(echo "$image $BASE_MODULES" | sha256sum | cut -c1-12)"
 # Runs hold the template lock shared until they have cloned it. One run builds a missing template
 # under the exclusive lock, and keeps it through its own clone: runs that start meanwhile wait for

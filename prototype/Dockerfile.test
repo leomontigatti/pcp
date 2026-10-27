@@ -24,7 +24,7 @@ COPY requirements-test.txt /tmp/requirements-test.txt
 RUN pip3 install --no-cache-dir --break-system-packages --no-deps -r /tmp/requirements-test.txt \
  && rm /tmp/requirements-test.txt
 
-# test-addons/ (pcp_browser_check), mounted by the odoo-test service, joins the addons path.
+# test-addons/ lives outside addons/ so the deployed image never carries it; odoo-test mounts it here.
 RUN sed -i 's|^addons_path = .*|&,/opt/odoo-addons/pcp-test|' /etc/odoo/odoo.conf
 
 USER odoo
