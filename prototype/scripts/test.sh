@@ -23,7 +23,7 @@ test_image_up() {
   PCP_TEST_KEY=$( (echo "$base"; cat Dockerfile.test requirements-test.txt) | sha256sum | cut -c1-12)
   export PCP_TEST_KEY
   docker image inspect "pcp-dev-odoo-test:$PCP_TEST_KEY" >/dev/null 2>&1 && return
-  echo "building the pcp-dev-odoo-test image (once per dev image, takes a minute)" >&2
+  echo "building the pcp-dev-odoo-test image (after a change to the dev image or Dockerfile.test, takes a minute)" >&2
   out=$(tar -c Dockerfile.test requirements-test.txt \
     | docker build -q -f Dockerfile.test -t "pcp-dev-odoo-test:$PCP_TEST_KEY" - 2>&1) \
     || { echo "$out" >&2; return 1; }
