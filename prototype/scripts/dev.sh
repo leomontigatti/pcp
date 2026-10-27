@@ -188,12 +188,15 @@ case "${1:-}" in
     # A worktree whose image goes builds it again on its next test run.
     stack_lock
     keep=$(test_image_key)
-    for tag in $(docker image ls --format '{{.Tag}}' pcp-dev-odoo-test); do
+    tags=$(docker image ls --format '{{.Tag}}' pcp-dev-odoo-test)
+    failed=0
+    for tag in $tags; do
       # Docker refuses one a test container is running on, and the rest still go; a run between
       # containers loses its image, hence "while no test runs".
-      [[ $tag == "$keep" ]] || docker image rm "pcp-dev-odoo-test:$tag" || true
+      [[ $tag == "$keep" ]] || docker image rm "pcp-dev-odoo-test:$tag" || failed=1
     done
     stack_unlock
+    exit "$failed"
     ;;
   *) die "usage: scripts/dev.sh up|down|reset|rm [key]|ls|env|shell|logs [n]|rebuild|prune-tests" ;;
 esac
