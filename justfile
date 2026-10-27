@@ -70,6 +70,10 @@ dev-rm key="":
 dev-rebuild:
     prototype/scripts/dev.sh rebuild
 
+# Remove the test images left by earlier dev image or Dockerfile.test versions; run while no test runs
+test-prune:
+    prototype/scripts/dev.sh prune-tests
+
 # Last N lines of this worktree's Odoo log
 dev-logs n="200":
     prototype/scripts/dev.sh logs {{ n }}

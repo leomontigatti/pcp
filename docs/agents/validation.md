@@ -32,8 +32,12 @@ it touched.
 addon in `prototype/addons`, and prints only failures plus a summary line. Lint may auto-fix files: rerun until it passes.
 
 Tests run in throwaway databases cloned from a template that has the AR stack installed with demo
-data. The first run after an image change builds the template (a few minutes), and runs started
-meanwhile, from any worktree, wait for that one build; later runs take seconds. Full logs stay in `prototype/.dev/test-logs/` for a week.
+data, in the test image (`prototype/Dockerfile.test`): the dev image plus headless Chrome, so
+`HttpCase` tours (`start_tour`, `start_pos_tour`) run instead of being skipped. A full run also
+tests `prototype/test-addons/pcp_browser_check`, one tour that fails the run when the browser
+cannot start; a browser test skipped for want of Chrome or `websocket-client` fails it too. The
+first run after an image change builds the test image and the template (a few minutes), and runs
+started meanwhile, from any worktree, wait for that one build; later runs take seconds. Full logs stay in `prototype/.dev/test-logs/` for a week.
 
 ## CI
 
@@ -54,6 +58,7 @@ opening a PR with `uv run just pr-title "<title>"`. Dependabot proposes action, 
 | Run Python inside Odoo | `echo '<code>' \| uv run just dev-shell` |
 | Every worktree's database, filestore and container; remove one | `dev-ls`; `dev-rm [key]` |
 | Run tests | `test [module...]` |
+| Disk filling with old test images (each `dev-rebuild` or `Dockerfile.test` change leaves one) | `test-prune`, while no test runs |
 | Configure the instance | `setup-proto` |
 | Read the old system's database (a raw MySQL backup folder; never committed, never deployed) | `legacy-load <dir>`, then `echo '<sql>' \| uv run just legacy-sql`; `legacy-down` removes it |
 | Propose the catalog review CSVs (#26) from the loaded legacy database | `catalog-review <out-dir>`; its tests: `legacy-test` |

@@ -12,7 +12,9 @@ the number assigned, the printed text. Never on how a method builds its query.
 ## Test cases
 
 - `TransactionCase` for model logic, `HttpCase` for a route or the web client. Both roll the
-  database back, so use the test database instead of mocking the ORM.
+  database back, so use the test database instead of mocking the ORM. A tour (`start_tour`,
+  `start_pos_tour`) drives the web client or the point of sale in the test image's headless
+  Chrome; its steps live in the addon's `static/tests/`, loaded through `web.assets_tests`.
 - A test lives in the addon's `tests/` package, and Odoo collects only the modules
   `tests/__init__.py` imports: import every new test module there.
 - Fixtures: extend the addon's `tests/common.py`, or the `setUpClass` of the nearest test class,

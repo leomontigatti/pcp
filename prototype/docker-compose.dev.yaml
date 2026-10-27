@@ -1,7 +1,7 @@
 # The machine's one dev stack, shared by every worktree: Postgres (with proto, the neutralized copy
 # of the deployed instance that dev-pull.sh writes), the filestore volume and the image. Never `up`
-# the odoo service: it is for builds and one-off runs (scripts/test.sh, dev-pull.sh). Each worktree
-# serves its own copy of proto from docker-compose.worktree.yaml, through scripts/dev.sh.
+# the odoo services: odoo is for builds and one-off runs (dev-pull.sh), odoo-test for scripts/test.sh.
+# Each worktree serves its own copy of proto from docker-compose.worktree.yaml, through scripts/dev.sh.
 # The image pins the same Odoo and addons commits as the deployed one; addons/ is mounted live as pcp.
 name: pcp-dev
 services:
@@ -26,7 +26,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    environment:
+    environment: &odoo-env
       HOST: db
       PORT: 5432
       USER: odoo
@@ -38,6 +38,20 @@ services:
     volumes:
       - odoo-data:/var/lib/odoo
       - ./addons:/opt/odoo-addons/pcp:ro
+
+  # The odoo image plus a browser for HttpCase tours (Dockerfile.test, built by scripts/test.sh),
+  # with test-addons/ on its addons path. Tagged by its inputs, which test.sh passes as PCP_TEST_KEY.
+  odoo-test:
+    image: pcp-dev-odoo-test:${PCP_TEST_KEY:-unset}
+    pull_policy: never
+    # Odoo as PID 1 would not reap the processes Chrome leaves (chrome_crashpad), and a test fails on
+    # a leftover child process.
+    init: true
+    environment: *odoo-env
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./addons:/opt/odoo-addons/pcp:ro
+      - ./test-addons:/opt/odoo-addons/pcp-test:ro
 
 volumes:
   db-data:

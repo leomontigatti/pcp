@@ -53,13 +53,13 @@ repos:
         entry: uv run --locked pylint
         language: system
         types: [python]
-        files: ^prototype/addons/
+        files: ^prototype/(test-)?addons/
         require_serial: true
       - id: oca-checks-odoo-module
         name: OCA checks (manifest, xml, csv)
         entry: uv run --locked oca-checks-odoo-module
         language: system
-        files: ^prototype/addons/.*(\.(csv|xml)|/__manifest__\.py)$
+        files: ^prototype/(test-)?addons/.*(\.(csv|xml)|/__manifest__\.py)$
         require_serial: true
       - id: oca-checks-po
         name: OCA checks (po)
