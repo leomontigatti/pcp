@@ -189,7 +189,8 @@ case "${1:-}" in
     stack_lock
     keep=$(test_image_key)
     for tag in $(docker image ls --format '{{.Tag}}' pcp-dev-odoo-test); do
-      # One a running test uses is refused (docker says so), and the rest still go.
+      # Docker refuses one a test container is running on, and the rest still go; a run between
+      # containers loses its image, hence "while no test runs".
       [[ $tag == "$keep" ]] || docker image rm "pcp-dev-odoo-test:$tag" || true
     done
     stack_unlock

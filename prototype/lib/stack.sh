@@ -17,7 +17,7 @@ stack_unlock() { flock -u 9; }
 # set of inputs, so worktrees whose Dockerfile.test differs never retag each other's.
 test_image_key() {
   local base
-  base=$(docker image inspect -f '{{.Id}}' pcp-dev-odoo)
+  base=$(docker image inspect -f '{{.Id}}' pcp-dev-odoo) || return 1
   (echo "$base"; cat Dockerfile.test requirements-test.txt) | sha256sum | cut -c1-12
 }
 
