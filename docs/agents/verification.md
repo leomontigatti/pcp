@@ -108,6 +108,6 @@ Which flow proves which area. The numbers are the sections `uv run just scenario
 | Supplier bills, Perceptions (IIBB Córdoba)                  | Scenario 3: a supplier bill with an IIBB perception                                    |
 | Stock Transfers, Replenishment Requests, stock in transit   | Scenario 4: a resupply route from the Warehouse to a Retail Store, dispatched and in transit |
 | Internal Consumption                                        | Scenario 5: a Retail Store consumes stock to its consumption location                  |
-| Point of Sale screens                                       | No scenario yet: drive the POS in the browser, or say it was not seen                  |
+| Point of Sale screens                                       | No scenario yet: drive the POS in the browser, or say it was not seen; a POS tour in the addon's tests runs in `uv run just test` ([tdd-odoo.md](tdd-odoo.md)) |
 | Printed documents (invoices, reports)                       | Print from the record in the browser; the text through `dev-shell` as the fallback     |
 | Anything that asks ARCA for a CAE                           | Cannot be driven locally: the test with the ARCA client mocked ([tdd-odoo.md](tdd-odoo.md)) |

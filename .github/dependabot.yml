@@ -54,3 +54,5 @@ updates:
     ignore:
       - dependency-name: odoo
         update-types: [version-update:semver-major]
+      # Dockerfile.test builds FROM the local dev image, which no registry has.
+      - dependency-name: pcp-dev-odoo

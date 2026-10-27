@@ -32,8 +32,12 @@ it touched.
 addon in `prototype/addons`, and prints only failures plus a summary line. Lint may auto-fix files: rerun until it passes.
 
 Tests run in throwaway databases cloned from a template that has the AR stack installed with demo
-data. The first run after an image change builds the template (a few minutes), and runs started
-meanwhile, from any worktree, wait for that one build; later runs take seconds. Full logs stay in `prototype/.dev/test-logs/` for a week.
+data, in the test image (`prototype/Dockerfile.test`): the dev image plus headless Chrome, so
+`HttpCase` tours (`start_tour`, `start_pos_tour`) run instead of being skipped. A full run also
+tests `prototype/test-addons/pcp_browser_check`, one tour that fails the run when the browser
+cannot start; a browser test skipped for want of Chrome or `websocket-client` fails it too. The
+first run after an image change builds the test image and the template (a few minutes), and runs
+started meanwhile, from any worktree, wait for that one build; later runs take seconds. Full logs stay in `prototype/.dev/test-logs/` for a week.
 
 ## CI
 

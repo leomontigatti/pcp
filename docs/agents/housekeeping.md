@@ -30,4 +30,4 @@ touches nothing else: not `proto`, not the test templates, not another key, and 
 itself.
 
 The shared stack (Postgres in compose project `pcp-dev`, the `pcp-dev_odoo-data` volume, the
-`pcp-dev-odoo` image) is the machine's, not a worktree's: the sweep leaves it.
+`pcp-dev-odoo` and `pcp-dev-odoo-test` images) is the machine's, not a worktree's: the sweep leaves it.
