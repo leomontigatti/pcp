@@ -89,6 +89,10 @@ class GroupVariantsTest(unittest.TestCase):
         self.assertEqual((g.name, g.attribute, g.attribute2), ("Bolsa Manija", "Color", "Medida"))
         self.assertEqual(g.values2, {"1": "22x30x10", "2": "22x30x10", "3": "26x36x12", "4": "26x36x12"})
 
+    def test_the_name_drops_the_varying_token_not_the_same_digits_elsewhere(self):
+        groups = group_variants([product("1", "Cinta 48x50 48"), product("2", "Cinta 48x50 60")])
+        self.assertEqual(groups[0].name, "Cinta 48x50")
+
     def test_a_different_word_is_a_model_group_with_lower_confidence(self):
         groups = group_variants([product("1", "Juego de Mesa Ludo", cost=1), product("2", "Juego de Mesa Oca", cost=2)])
         self.assertEqual((groups[0].attribute, groups[0].confidence), ("Modelo", "Baja"))
@@ -114,6 +118,10 @@ class MatchCatalogsTest(unittest.TestCase):
         )
         self.assertEqual([(m.warehouse.code, m.alberdi.code) for m in matches], [("100001", "5")])
         self.assertIn("abreviaturas", matches[0].reason)
+
+    def test_a_repeated_word_counts_once_so_similarity_never_passes_100(self):
+        matches = match_catalogs([product("100001", "Bolsa Bolsa Roja")], [product("6", "BOLSA ROJA", branch="03")])
+        self.assertEqual([(m.alberdi.code, m.score) for m in matches], [("6", 1.0)])
 
     def test_unrelated_descriptions_do_not_match(self):
         matches = match_catalogs(

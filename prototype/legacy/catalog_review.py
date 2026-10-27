@@ -23,6 +23,7 @@ WAREHOUSE, ALBERDI = "01", "03"
 
 # The client opens these in a Spanish-locale Excel or LibreOffice: `;` separates, `,` is the decimal mark.
 DELIMITER = ";"
+OUTPUTS = ("variantes_deposito.csv", "duplicados_deposito_alberdi.csv")
 
 # Colour words and their abbreviations, by the value they stand for (masculine: "negra" is Negro).
 COLOURS = {
@@ -165,6 +166,7 @@ class Token:
     kind: str  # dim, qty, numunit, num, word or colour
     key: str  # what is compared
     text: str  # as written in the description
+    start: int = 0  # where the text sits in the description
 
 
 @dataclass
@@ -207,22 +209,24 @@ def tokenize(description):
         folded = re.sub(rf"\b{compound}\b", compound.replace(" ", "_"), folded)
     tokens = []
     for m in re.finditer(rf"(?P<compound>[a-z]+_[a-z]+)|{TOKEN.pattern}", folded):
-        text = description[m.start() : m.end()].strip()
+        span = description[m.start() : m.end()]
+        text = span.strip()
+        start = m.start() + len(span) - len(span.lstrip())
         kind = m.lastgroup
         raw = m.group(kind)
         if kind == "compound":
-            tokens.append(Token("colour", raw.replace("_", " "), text))
+            tokens.append(Token("colour", raw.replace("_", " "), text, start))
         elif kind == "word":
             if raw in COLOURS:
-                tokens.append(Token("colour", COLOURS[raw].lower(), text))
+                tokens.append(Token("colour", COLOURS[raw].lower(), text, start))
             elif raw not in STOPWORDS:
-                tokens.append(Token("word", raw, text))
+                tokens.append(Token("word", raw, text, start))
         else:
             key = re.sub(r"\s+", "", raw).replace(",", ".").replace("*", "x")
             unit = re.search(r"[a-z]+$", key)
             if unit:
                 key = key[: unit.start()] + UNITS.get(unit.group(), unit.group())
-            tokens.append(Token(kind, key, text))
+            tokens.append(Token(kind, key, text, start))
     return tokens
 
 
@@ -327,7 +331,7 @@ def _merge_by_measure(groups):
 def _combine(parts):
     groups = [g for g, _ in parts]
     first, token = parts[0]
-    name = _clean_name(first.name.replace(token.text, " ", 1))
+    name = _without(first.name, token)
     members = [p for g in groups for p in g.members]
     values2 = {p.code: _value(t) for g, t in parts for p in g.members}
     colours = sorted({v for g in groups for v in g.values.values()})
@@ -354,7 +358,7 @@ def _make_group(number, members, candidate, tokenized):
     if attribute == "Medida":
         attribute = _refine_measure(tokens) or attribute
     first = tokenized[members[0].code][candidate.position]
-    name = _clean_name(members[0].description.replace(first.text, " ", 1))
+    name = _without(members[0].description, first)
     values = {p.code: _value(t) for p, t in zip(members, tokens, strict=True)}
 
     same_cost = _same((p.cost for p in members), 0.005) and _same(sum(p.discounts) for p in members)
@@ -377,6 +381,11 @@ def _make_group(number, members, candidate, tokenized):
     else:
         confidence = "Alta" if same_supplier else "Media"
     return Group(number, name, attribute, values, confidence, "; ".join(checks), members)
+
+
+def _without(text, token):
+    """The text without the token, cut by its position: the same characters may appear elsewhere in it."""
+    return _clean_name(text[: token.start] + " " + text[token.start + len(token.text) :])
 
 
 def _clean_name(name):
@@ -456,7 +465,7 @@ def _describe_match(w, a, s, w_keys, a_keys):
     reasons = [
         "misma descripción (sin mayúsculas, acentos ni signos)" if same_words else f"descripción parecida ({s:.0%})"
     ]
-    reasons.append("mismas medidas" if numbers(tokenize(w.description)) else "ninguna menciona medidas")
+    reasons.append("mismos números y medidas" if numbers(tokenize(w.description)) else "ninguna menciona números")
     if not same_words:
         only_w = [t.text for t in tokenize(w.description) if not _covered(t.key, a_keys)]
         only_a = [t.text for t in tokenize(a.description) if not _covered(t.key, w_keys)]
@@ -472,7 +481,8 @@ def _describe_match(w, a, s, w_keys, a_keys):
 
 
 def _match_keys(description):
-    return [t.key for t in tokenize(description)]
+    """Each word once: a word repeated on one side must not count twice against one on the other."""
+    return list(dict.fromkeys(t.key for t in tokenize(description)))
 
 
 def _covered(key, keys):
@@ -539,7 +549,7 @@ def write_review(products, out):
         g = group_of.get(p.code)
         return (0, confidence_order[g.confidence], g.number, p.code) if g else (1, 0, 0, p.code)
 
-    with open(out / "variantes_deposito.csv", "w", newline="", encoding="utf-8-sig") as f:
+    with open(out / OUTPUTS[0], "x", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f, delimiter=DELIMITER)
         w.writerow(
             [
@@ -589,7 +599,7 @@ def write_review(products, out):
                 ]
             )
 
-    with open(out / "duplicados_deposito_alberdi.csv", "w", newline="", encoding="utf-8-sig") as f:
+    with open(out / OUTPUTS[1], "x", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f, delimiter=DELIMITER)
         w.writerow(
             [
@@ -631,6 +641,10 @@ def main():
     if len(sys.argv) != 2:
         sys.exit("usage: catalog_review.py <out-dir>  (reads catalog.sql's output on stdin)")
     out = Path(sys.argv[1])
+    # The client fills these files in: a rerun into the same directory must not wipe their answers.
+    existing = [name for name in (*OUTPUTS, "LEEME.txt") if (out / name).exists()]
+    if existing:
+        sys.exit(f"{out} already has {', '.join(existing)}: move them away or pick another directory")
     out.mkdir(parents=True, exist_ok=True)
     products = read_products(sys.stdin)
     warehouse, groups, matches = write_review(products, out)
