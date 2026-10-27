@@ -44,9 +44,13 @@ updates:
       - dependency-name: xlrd
 
   # The odoo:19.0 digest. Monthly: each bump means a rebuild and a test run before merging.
+  # Majors ignored: moving to Odoo 20 is a migration, tracked in #33, not a Dependabot bump.
   - package-ecosystem: docker
     directory: /prototype
     schedule:
       interval: monthly
     commit-message:
       prefix: build
+    ignore:
+      - dependency-name: odoo
+        update-types: [version-update:semver-major]
