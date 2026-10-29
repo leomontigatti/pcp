@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# The pre-commit hook every checkout of this repo shares, installed by `just setup`. It runs
+# pre-commit through uv in the checkout that commits, so no checkout depends on another's venv
+# or on a system Python that an OS upgrade can remove.
+exec uv run --locked pre-commit hook-impl --config=.pre-commit-config.yaml --hook-type=pre-commit \
+  --hook-dir "$(cd "$(dirname "$0")" && pwd)" -- "$@"
