@@ -47,6 +47,11 @@ class TestReplacementCost(PricingCase):
         self.receive(self.ream, 1000, price=0.0345)
         self.assertAlmostEqual(self.ream.replacement_cost, 0.036225)
 
+    def test_the_cost_keeps_its_decimals_when_taxes_round_per_line(self):
+        self.env.company.tax_calculation_rounding_method = "round_per_line"
+        self.receive(self.ream, 1000, price=0.0345, taxes=self.iva21)
+        self.assertAlmostEqual(self.ream.replacement_cost, 0.036225)
+
     def test_a_free_bonus_line_leaves_the_cost_of_the_paid_one(self):
         self.receive(self.ream, 10, price=200, bonus=1)
         self.assertAlmostEqual(self.ream.replacement_cost, 210)

@@ -17,8 +17,8 @@ class PurchaseOrderLine(models.Model):
             product_id=self.product_id,
             partner_id=self.partner_id,
         )
-        taxes._add_tax_details_in_base_line(base_line, self.company_id)
-        # The raw total: compute_all would round the Cost to cents, and a Cost is never rounded.
+        # Rounded globally whatever the company sets, and the raw total read: a Cost is never rounded.
+        taxes._add_tax_details_in_base_line(base_line, self.company_id, rounding_method="round_globally")
         price = base_line["tax_details"]["raw_total_excluded_currency"]
         price = self.product_uom_id._compute_price(price, self.product_id.uom_id)
         company = self.company_id
