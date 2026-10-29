@@ -6,10 +6,10 @@ class StockMove(models.Model):
 
     def _action_done(self, cancel_backorder=False):
         moves = super()._action_done(cancel_backorder=cancel_backorder)
-        # A free line (a bonificación at price 0 or 100% off) is not a supplier price.
+        # A free line (a bonificación at price 0 or 100% off) or a credit (below 0) is not a supplier price.
         received = moves.filtered(
             lambda m: (
-                m.state == "done" and m.purchase_line_id.price_unit_discounted and m.location_id.usage == "supplier"
+                m.state == "done" and m.purchase_line_id.price_unit_discounted > 0 and m.location_id.usage == "supplier"
             )
         )
         # A warehouse user may validate a receipt without the right to edit products; the Cost is

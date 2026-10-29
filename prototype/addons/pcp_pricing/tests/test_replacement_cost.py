@@ -51,6 +51,11 @@ class TestReplacementCost(PricingCase):
         self.receive(self.ream, 10, price=200, bonus=1)
         self.assertAlmostEqual(self.ream.replacement_cost, 210)
 
+    def test_a_negative_price_line_leaves_the_cost_alone(self):
+        self.receive(self.ream, 10, price=200)
+        self.receive(self.ream, 1, price=-50)  # a supplier credit booked as a stock line
+        self.assertAlmostEqual(self.ream.replacement_cost, 210)
+
     def test_each_variant_keeps_the_cost_of_its_own_last_purchase(self):
         small, large = self.bag_variants()
         self.receive(small, 100, price=10)
