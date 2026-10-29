@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.pcp_pricing</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <block id="pricing_setting_container" position="inside">
+                <setting
+                    id="pcp_cost_freight"
+                    string="Flete sobre el costo"
+                    help="Lo que se suma al precio de compra, después de los descuentos del proveedor, para dar el costo."
+                    company_dependent="1"
+                >
+                    <field name="cost_freight" />
+                </setting>
+                <setting
+                    id="pcp_pack_discount"
+                    string="Descuento por bulto cerrado"
+                    help="Lo que se suma al descuento del cliente mayorista en una línea de bultos cerrados."
+                    company_dependent="1"
+                >
+                    <field name="pack_discount" />
+                </setting>
+            </block>
+        </field>
+    </record>
+</odoo>
