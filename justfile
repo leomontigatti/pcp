@@ -13,7 +13,9 @@ default:
 # Install pinned tools and the pre-commit git hook; create prototype/.env if missing
 setup:
     uv sync --locked
-    uv run pre-commit install --install-hooks
+    @if hooks=$(git config core.hooksPath); then echo "core.hooksPath is set ($hooks): not overwriting its pre-commit hook" >&2; exit 1; fi
+    install -D -m 0755 .githooks/pre-commit "$(git rev-parse --git-path hooks)/pre-commit"
+    uv run pre-commit install-hooks
     [ -f prototype/.env ] || cp prototype/.env.example prototype/.env
 
 # All linters and formatters on every file (fixes what it can; rerun to confirm)
