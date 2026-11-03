@@ -241,6 +241,22 @@ def _group_axes(rows, products):
     return axes, attributes
 
 
+def _values_in_groups(rows, axes):
+    """Each group's values: the description tokens it varies in, and the values the client wrote.
+
+    The client may have corrected a value, so the description alone does not say which ones are taken.
+    """
+    taken = defaultdict(set)
+    for by_group in axes.values():
+        for n, ts in by_group.items():
+            taken[n].update(t.key for t in ts)
+    given = defaultdict(set)
+    for row in rows:
+        if row.group is not None and row.values["valor"].strip():
+            given[row.group].add(normalized_value(row.values["valor"]).casefold())
+    return taken, given
+
+
 def join_brasil_groups(rows, products, alberdi):
     """Alberdi codes that are one more variant of a Brasil group: {code: (group, attribute, value, reason)}.
 
@@ -251,10 +267,7 @@ def join_brasil_groups(rows, products, alberdi):
     two groups joins none.
     """
     axes, groups = _group_axes(rows, products)
-    taken = defaultdict(set)  # group -> value keys already in it
-    for by_group in axes.values():
-        for n, ts in by_group.items():
-            taken[n].update(t.key for t in ts)
+    taken, given = _values_in_groups(rows, axes)
     joined = {}
     for p in sorted(alberdi, key=lambda p: p.code):
         tokens = tokenize(p.description)
@@ -266,8 +279,11 @@ def join_brasil_groups(rows, products, alberdi):
         if len(fits) != 1:
             continue
         ((n, token),) = fits.items()
-        taken[n].add(token.key)
         value = normalized_value(token.text)
+        if value.casefold() in given[n]:
+            continue
+        taken[n].add(token.key)
+        given[n].add(value.casefold())
         reason = (
             f"misma descripción que el grupo {n} de Brasil salvo {groups[n].lower()} ({value}); mismo IVA; "
             "el costo de Alberdi puede estar desactualizado"

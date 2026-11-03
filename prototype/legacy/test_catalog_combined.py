@@ -136,6 +136,21 @@ class AlberdiRowsTest(unittest.TestCase):
         # Joined rows sort inside the Brasil group.
         self.assertEqual([r.values["codigo"] for r in result.rows][:3], ["100587", "100590", "001251"])
 
+    def test_a_value_the_client_already_gave_the_group_is_not_joined_twice(self):
+        brasil = [
+            product("100587", "Cinta Pla 20mm X50mts lisa"),
+            product("100590", "Cinta Pla 25mm X50mts lisa"),
+        ]
+        # The client corrected the first row to 10 mm: an Alberdi 10 mm would be a second 10 mm.
+        lines = [
+            "100587,Cinta Pla 20mm X50mts lisa,,,,,,,122,Cinta Pla Lisa,Medida,10 mm,,,,,,",
+            "100590,Cinta Pla 25mm X50mts lisa,,,,,,,122,Cinta Pla Lisa,Medida,25 mm,,,,,,",
+        ]
+        alberdi = [product("001251", "CINTA PLA 10MM X50MT LISA", branch="03", category="900")]
+        result = self.build(alberdi, lines, brasil)
+        self.assertEqual(by_code(result)["001251"]["grupo"], "")
+        self.assertEqual(result.joined, 0)
+
     def test_new_groups_number_past_the_clients_and_skip_brand_words(self):
         result = self.build(
             [
