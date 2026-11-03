@@ -43,7 +43,9 @@ started meanwhile, from any worktree, wait for that one build; later runs take s
 
 `.github/workflows/ci.yml` runs the same recipes on every PR: `checks` (all pre-commit hooks, plus
 gitleaks over the PR's commits, and `legacy-test`) and `test`. `pr-title.yml` checks the title; check one before
-opening a PR with `uv run just pr-title "<title>"`. Dependabot proposes action, uv, image-pip and
+opening a PR with `uv run just pr-title "<title>"`. Both gitleaks runs (the pre-commit hook and the CI step) read
+`.gitleaks.toml` at the repo root, which extends the default rules. gitleaks and GitHub push protection are the
+secret scans; the GitGuardian app was removed on 2026-11-03. Dependabot proposes action, uv, image-pip and
 `odoo:19.0` digest bumps after a 7-day cooldown; addons pins move only through `bump-addons`.
 
 ## Day to day

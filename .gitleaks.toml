@@ -1,0 +1,20 @@
+# Secret detection for this repo. gitleaks 8.30.1 runs in two places: the
+# `gitleaks` hook in .pre-commit-config.yaml over the staged diff, and the
+# "Secrets in this PR's commits (gitleaks)" step in .github/workflows/ci.yml over
+# the PR's commits. Both read this file; there is no second configuration.
+#
+# gitleaks is the client-side half. The server-side half is GitHub secret
+# scanning with push protection, which owns provider tokens (its patterns are
+# validated against the providers and it blocks the push itself). Only what this
+# repo can leak that both the defaults and push protection miss belongs here.
+
+title = "PCP"
+
+# The upstream ruleset is the baseline; rules added below only extend it.
+[extend]
+useDefault = true
+
+# No custom rules yet. The usual gap, a password inside a connection URL
+# (`postgres://user:pass@host`), has no shape to catch here: Odoo and Postgres
+# take their credentials as separate variables (HOST, USER, PASSWORD,
+# ODOO_URL plus ODOO_ADMIN_PASSWORD), never embedded in a URL.
