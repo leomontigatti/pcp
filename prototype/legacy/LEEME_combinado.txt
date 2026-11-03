@@ -1,0 +1,78 @@
+REVISIÓN DEL CATÁLOGO: SEGUNDA VUELTA (BRASIL Y ALBERDI JUNTOS)
+================================================================
+
+Gracias por la revisión de Papelera Brasil. Como Brasil factura los artículos de librería con los
+códigos de Alberdi, y Cárcano también vende del catálogo de Alberdi, ahora los dos catálogos están en
+una sola planilla: así pueden armar los grupos viendo todas las marcas juntas.
+
+Son dos planillas de Excel (.xlsx). Se pueden subir a Google Drive y abrir con Hojas de cálculo de
+Google, o abrir con Excel o LibreOffice. Para devolverlas, descárguenlas como Excel (Archivo >
+Descargar > Microsoft Excel .xlsx); también sirve como CSV. Vienen en Excel y no en CSV porque al abrir
+el CSV, Hojas de cálculo cambiaba los números: un costo de "1130,694" quedaba como "1,130,694".
+
+
+1. catalogo_combinado.xlsx: los artículos de Brasil y los de Alberdi que se siguen vendiendo
+----------------------------------------------------------------------------------------------
+
+Tiene una fila por código: primero todo lo que ustedes revisaron de Brasil, tal como lo dejaron, y
+además los códigos de Alberdi con movimiento reciente (stock cargado, un aumento de precio desde 2025 o
+un cambio en el código en 2026). Está ordenada por rubro y, dentro de cada rubro, por grupo, para que
+puedan revisar un rubro a la vez. Las filas tienen filtro: se puede filtrar por rubro o por sucursal.
+
+Qué cambió respecto de su revisión:
+- Lo que ustedes escribieron (grupo, producto_propuesto, atributo, valor, atributo_2, valor_2,
+  descripcion, confirmado) está igual. Las filas confirmadas no se tocaron.
+- Los grupos que marcaron con letras (aaa, bbb, ddd, ???, XXX, xxx) ahora tienen un número libre. Cada
+  letra sigue siendo un grupo distinto ("XXX" y "xxx" son dos grupos).
+- Los 8 códigos que borraron por duplicados ya no aparecen.
+- Las filas que agregaron sin código (los cuadernos que estaban juntos en un solo código) siguen,
+  marcadas en "motivo" como ARTÍCULO NUEVO. Su costo e IVA se copiaron de la planilla: revísenlos.
+- Costo, bonificaciones, IVA, unidades por bulto, proveedor y rubro se volvieron a tomar del sistema.
+
+Columnas nuevas:
+- sucursal: Brasil o Alberdi, el catálogo de donde viene el código.
+- duplicado_de: en una fila de Alberdi, el código de Brasil que parece ser el mismo artículo. Esas
+  filas aparecen justo debajo de la fila de Brasil y no tienen grupo. Si son el mismo artículo,
+  escriban SI en "confirmado": en el sistema nuevo serán un solo producto, que se encuentra por los
+  dos códigos. Si no lo son, escriban NO o borren el código de "duplicado_de".
+
+Grupos de Alberdi: son una PROPUESTA, igual que en la primera vuelta. Los números de grupo nuevos
+empiezan después de los de ustedes. Unos pocos códigos de Alberdi se propusieron dentro de un grupo de
+Brasil, solo cuando la descripción es la misma salvo el color o la medida (misma marca). No se
+propusieron grupos donde cambia una palabra que podría ser la marca o el envase (por ejemplo "X50" y
+"C/U"): un grupo es siempre una sola marca y un solo bulto. Cuando un valor es un número sin unidad
+(por ejemplo "9512"), puede ser un número de artículo y no una medida: esos grupos tienen confianza
+Baja.
+
+Columnas para completar o corregir:
+- grupo, producto_propuesto, atributo, valor, atributo_2, valor_2: como en la primera vuelta. Pueden
+  sumar códigos de Alberdi a un grupo de Brasil, y al revés, si es el mismo producto y la misma marca.
+  Usen los mismos nombres de atributo en todo el catálogo (por ejemplo siempre "Color", nunca "Colores"
+  en otro grupo), y pongan la unidad en el valor: "30 cm", "250 g", "500 ml", "100 u".
+- confirmado: SI en cada fila que esté bien; NO o vacío, queda como producto aparte.
+- descripcion: si quieren corregirla.
+
+Columnas que NO hay que cambiar: costo, bonificaciones, iva, unidades_bulto, proveedor y rubro. Salen
+del sistema y se vuelven a tomar de ahí; lo que se cambie en la planilla no se usa. Los costos de
+Alberdi muchas veces están desactualizados: sirven de referencia, no para decidir.
+
+ANTE LA DUDA, NO AGRUPAR. Un código que queda solo se carga como producto aparte, igual que hoy, y
+después se le pueden agregar variantes. Lo que no se puede hacer después es separar un producto que ya
+tiene ventas y stock.
+
+
+2. alberdi_sin_actividad.xlsx: los códigos de Alberdi sin movimiento
+--------------------------------------------------------------------
+
+Los códigos activos de Alberdi sin stock cargado, sin aumentos de precio desde 2025 y sin cambios en
+2026. No están en la otra planilla y no tienen grupo. Las columnas "ultimo_aumento" y
+"ultima_modificacion" dicen cuándo se tocaron por última vez. "duplicado_de" indica si parecen el mismo
+artículo que un código de Brasil.
+
+Columna para completar:
+- se_sigue_vendiendo: SI si el artículo se sigue vendiendo y hay que pasarlo al sistema nuevo. Los
+  que queden vacíos se toman como que ya no se venden.
+
+
+Cuando terminen, devuelvan las dos planillas. Si un caso les genera dudas, déjenlo sin confirmar y
+anótenlo aparte: se puede revisar después.

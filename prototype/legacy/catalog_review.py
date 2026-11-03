@@ -139,7 +139,9 @@ STOPWORDS = {"de", "del", "con", "c", "p", "para", "el", "la", "los", "las", "y"
 NUM = r"\d+(?:[.,]\d+)?"
 UNIT = "|".join(sorted(UNITS, key=len, reverse=True))
 TOKEN = re.compile(
-    rf"(?P<dim>{NUM}(?:\s*[x*]\s*{NUM})+(?:\s*(?:{UNIT})(?![a-z]))?)"
+    # A paper size is one measure: `A4` is not the stopword `a` and the number 4.
+    r"(?P<paper>(?<![a-z])[ab]-?\d{1,2}(?![\d.,]))"
+    rf"|(?P<dim>{NUM}(?:\s*[x*]\s*{NUM})+(?:\s*(?:{UNIT})(?![a-z]))?)"
     rf"|(?P<qty>(?<![a-z])x\s*{NUM}(?:\s*(?:{UNIT})(?![a-z]))?)"
     rf"|(?P<numunit>{NUM}\s*(?:{UNIT})(?![a-z]))"
     rf"|(?P<num>{NUM})"
@@ -159,6 +161,9 @@ class Product:
     vat: float
     pack: float
     supplier: str
+    live: bool = False  # catalog.sql's LIVE: some activity in the backup
+    last_increase: str = ""  # date of the last price increase, as the old system wrote it
+    last_change: str = ""  # date of the last change to the code
 
 
 @dataclass
@@ -222,7 +227,7 @@ def tokenize(description):
             elif raw not in STOPWORDS:
                 tokens.append(Token("word", raw, text, start))
         else:
-            key = re.sub(r"\s+", "", raw).replace(",", ".").replace("*", "x")
+            key = re.sub(r"\s+", "", raw).replace(",", ".").replace("-", "").replace("*", "x")
             unit = re.search(r"[a-z]+$", key)
             if unit:
                 key = key[: unit.start()] + UNITS.get(unit.group(), unit.group())
@@ -238,7 +243,7 @@ def attribute_of(kinds):
     """Name the attribute that the varying tokens of a group express."""
     if kinds == {"colour"}:
         return "Color"
-    if kinds <= {"dim", "qty", "numunit", "num"}:
+    if kinds <= {"dim", "qty", "numunit", "num", "paper"}:
         if kinds == {"qty"}:
             return "Cantidad"
         return "Medida"
@@ -306,7 +311,7 @@ def group_variants(products):
 
 def _merge_by_measure(groups):
     """One Product with two attributes: colour groups whose names differ only in a measure."""
-    measures = {"dim", "qty", "numunit", "num"}
+    measures = {"dim", "qty", "numunit", "num", "paper"}
     by_key = defaultdict(list)
     for group in groups:
         if group.attribute != "Color":
@@ -516,6 +521,9 @@ def read_products(lines):
                 vat=float(r["IVA"] or 0),
                 pack=float(r["UNIBUL"] or 0),
                 supplier=r["CUENTAP"] or "",
+                live=r.get("LIVE") == "1",
+                last_increase=r.get("FEC_ULT_AUM") or "",
+                last_change=r.get("ACT_FECH") or "",
             )
         )
     return products
