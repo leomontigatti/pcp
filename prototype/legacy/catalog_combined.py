@@ -241,6 +241,11 @@ def _group_axes(rows, products):
     return axes, attributes
 
 
+def _value_key(text):
+    """One value however it is written: `A-4` is `A4`, `10,0 mm` is `10MM`."""
+    return " ".join(re.sub(r"(\d)\.0+(?![\d])", r"\1", t.key) for t in tokenize(text)) or text.strip().casefold()
+
+
 def _values_in_groups(rows, axes):
     """Each group's values: the description tokens it varies in, and the values the client wrote.
 
@@ -253,7 +258,7 @@ def _values_in_groups(rows, axes):
     given = defaultdict(set)
     for row in rows:
         if row.group is not None and row.values["valor"].strip():
-            given[row.group].add(normalized_value(row.values["valor"]).casefold())
+            given[row.group].add(_value_key(row.values["valor"]))
     return taken, given
 
 
@@ -279,11 +284,11 @@ def join_brasil_groups(rows, products, alberdi):
         if len(fits) != 1:
             continue
         ((n, token),) = fits.items()
-        value = normalized_value(token.text)
-        if value.casefold() in given[n]:
+        if _value_key(token.text) in given[n]:
             continue
         taken[n].add(token.key)
-        given[n].add(value.casefold())
+        given[n].add(_value_key(token.text))
+        value = normalized_value(token.text)
         reason = (
             f"misma descripción que el grupo {n} de Brasil salvo {groups[n].lower()} ({value}); mismo IVA; "
             "el costo de Alberdi puede estar desactualizado"

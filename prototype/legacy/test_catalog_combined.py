@@ -147,9 +147,21 @@ class AlberdiRowsTest(unittest.TestCase):
             "100590,Cinta Pla 25mm X50mts lisa,,,,,,,122,Cinta Pla Lisa,Medida,25 mm,,,,,,",
         ]
         alberdi = [product("001251", "CINTA PLA 10MM X50MT LISA", branch="03", category="900")]
+        for written in ("10 mm", "10,0 mm", "10MM"):
+            with self.subTest(written=written):
+                result = self.build(alberdi, [lines[0].replace(",10 mm,", f",{written},"), lines[1]], brasil)
+                self.assertEqual(by_code(result)["001251"]["grupo"], "")
+                self.assertEqual(result.joined, 0)
+
+    def test_a_paper_size_the_client_wrote_another_way_is_still_taken(self):
+        brasil = [product("100700", "Papel Marca A5 x 100"), product("100701", "Papel Marca A6 x 100")]
+        lines = [
+            "100700,Papel Marca A5 x 100,,,,,,,200,Papel Marca,Medida,A-4,,,,,,",
+            "100701,Papel Marca A6 x 100,,,,,,,200,Papel Marca,Medida,A6,,,,,,",
+        ]
+        alberdi = [product("001300", "PAPEL MARCA A4 X 100", branch="03", category="900")]
         result = self.build(alberdi, lines, brasil)
-        self.assertEqual(by_code(result)["001251"]["grupo"], "")
-        self.assertEqual(result.joined, 0)
+        self.assertEqual(by_code(result)["001300"]["grupo"], "")
 
     def test_new_groups_number_past_the_clients_and_skip_brand_words(self):
         result = self.build(
