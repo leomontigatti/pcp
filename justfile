@@ -116,6 +116,11 @@ legacy-sql:
 catalog-review out:
     {{ just_executable() }} legacy-sql < prototype/legacy/catalog.sql | python3 -I prototype/legacy/catalog_review.py {{ quote(out) }}
 
+# Second round of the catalog review (#26): the client's <revised> Brasil file (.xlsx or Sheets CSV
+# export) plus Alberdi's live codes in one .xlsx, and Alberdi's inactive codes in another, in <out>.
+catalog-review-combined revised out:
+    {{ just_executable() }} legacy-sql < prototype/legacy/catalog.sql | python3 -I prototype/legacy/catalog_combined.py {{ quote(revised) }} {{ quote(out) }}
+
 # Unit tests of the legacy-data scripts in prototype/legacy (no database needed)
 legacy-test:
     python3 -I -m unittest discover -s prototype/legacy -t prototype/legacy
