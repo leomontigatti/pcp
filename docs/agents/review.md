@@ -67,6 +67,17 @@ Where this codebase gets hurt, for the correctness brief:
   or run with an empty variable; a write that reaches the deployed instance without
   `--yes-deployed`.
 
+**Who acts concurrently**, for weighing a race (the `implement` skill, step 2). One company: the
+back office at the **Warehouse** (sales, purchases, **Replenishment Requests**) and a **Point of
+Sale** in each **Retail Store**, every till selling the same products from its store's stock and
+invoicing through ARCA, where a CAE request takes seconds. Odoo's crons run beside them. Odoo runs
+each request in `REPEATABLE READ` and retries a serialization failure, so a race inside one request
+mostly ends in a retry; the ones that escape span two requests (a dialog read, then its submit) or
+an outside call (a CAE request). The peaks, store hours and month-end invoicing, are expected, not
+measured. Measure on the local copy, never the deployed instance: `uv run just dev-pull` replaces
+`proto` with a neutralized snapshot (verification.md says what that costs), then count `pos_order`
+and `account_move` rows per minute and per day by `create_date`, and users by group.
+
 ## Breadth
 
 - **Reverse states, in Odoo**: confirm needs cancel, post needs a visible posted state and, where

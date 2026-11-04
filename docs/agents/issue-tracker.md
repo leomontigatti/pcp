@@ -54,6 +54,16 @@ go-live"), which is what carries the deadline; the label only says it comes firs
 comment stating its wake-up trigger ("the ARCA homologation passes"); without one it is `priority:later`.
 Deciding against is a different thing: parked will be done when the trigger fires, a rejected issue is closed.
 
+A race is weighed as the `implement` skill's step 2 says, with the actors from
+[review.md](review.md#hotspots). The usual recommendations here, which a measured frequency or the fix's cost
+overrides:
+
+- silent and wrong on money, stock or an invoice's number or CAE (two tills, two users or a cron on one record):
+  `priority:next`, and `priority:urgent` in the run-up to a go-live;
+- loud (an error the user retries) with nothing lost: `priority:later` at most;
+- a window that needs one person in two places at once, or opens a few times a year: `priority:parked` with
+  what would widen it, or closed as not planned when the fix costs more than the hits.
+
 | Type label    | Meaning                                                                   |
 | ------------- | ------------------------------------------------------------------------- |
 | `bug`         | Wrong behaviour today                                                     |
