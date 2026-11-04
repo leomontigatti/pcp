@@ -74,8 +74,9 @@ invoicing through ARCA, where a CAE request takes seconds. Odoo's crons run besi
 each request in `REPEATABLE READ` and retries a serialization failure, so a race inside one request
 mostly ends in a retry; the ones that escape span two requests (a dialog read, then its submit) or
 an outside call (a CAE request). The peaks, store hours and month-end invoicing, are expected, not
-measured. Measure on the local copy after `uv run just dev-pull`, never the deployed instance:
-`pos_order` and `account_move` rows per minute and per day by `create_date`, and users by group.
+measured. Measure on the local copy, never the deployed instance: `uv run just dev-pull` replaces
+`proto` with a neutralized snapshot (verification.md says what that costs), then count `pos_order`
+and `account_move` rows per minute and per day by `create_date`, and users by group.
 
 ## Breadth
 
