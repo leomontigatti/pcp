@@ -103,16 +103,19 @@ instance, not a prototype: a `prototype/<issue>` branch holds the variants, in t
   it.
 - **Variants.** Each variant is an inherited view of the screen's own view, in the module the
   change belongs to, so the real action, menu, record and data stay. On a form, a non-stored
-  selection field (`prototype_variant`, values `A`, `B`, `C`, default `A`) chooses the variant,
-  and each variant's block carries `invisible="prototype_variant != 'B'"`. The switcher is that
-  field with `widget="radio"` in a bar the module's SCSS fixes to the bottom centre, each value
-  labelled with its key and what it bets on, and the field carries `groups="base.group_no_one"`
-  so only debug mode shows it: without debug every user sees variant A. Changing it redraws the
-  form at once and marks the record changed; discard rather than save. A list or kanban variant
-  is a primary view of its own (`mode="primary"`) behind a debug-only menu item per variant
-  (`groups="base.group_no_one"`). Odoo's router owns the URL, so the variant is not a `?variant=`
-  key: the user switches with the bar, or with the menu items, in the preview tab, opened on the
-  URL `dev-up` prints with `?debug=1`.
+  computed selection field (`prototype_variant`, values `A`, `B`, `C`, `readonly=False`, its
+  compute setting `A`, since a default reaches only new records) chooses the variant, and each
+  variant's block carries `invisible="prototype_variant != 'B'"`. The view holds the field once
+  with no groups and `invisible="1"`, so every user's view can evaluate those expressions; the
+  switcher is the field a second time, with `widget="radio"`, in a bar the module's SCSS fixes to
+  the bottom centre, each value labelled with its key and what it bets on, and the bar carries
+  `groups="base.group_no_one"` so only debug mode shows it, to members of that group: without it
+  every user sees variant A. Changing it redraws the form at once and marks the record changed;
+  discard rather than save. A list or kanban variant is a primary view of its own
+  (`mode="primary"`), opened by a window action of its own whose `view_id` names it, behind a
+  menu item per variant with `groups="base.group_no_one"`. Odoo's router owns the URL, so the
+  variant is not a `?variant=` key: the user switches with the bar, or with the menu items, in
+  the preview tab, opened on the URL `dev-up` prints with `?debug=1`.
 - **Reference capture.** For the implementation's evidence, add a worktree of the prototype
   branch (`git worktree add`), run `t3.json`'s setup command in it by hand (a worktree made
   outside T3 has no `prototype/.env` link: [workflows.md](workflows.md#this-repos-worktrees)),
@@ -121,7 +124,8 @@ instance, not a prototype: a `prototype/<issue>` branch holds the variants, in t
   `?debug=1`, switch to the winner, and capture it with `preview_snapshot` (`save: true`) at the
   viewport the after will use, as `<what>-reference.png`. Until the preview tools work against
   Odoo (`preview-odoo-login` in [t3-dependencies.md](t3-dependencies.md)), the reference is the
-  text § Evidence names, read from that worktree's `dev-shell`. Then close the tab, run
+  text § Evidence names, read from that worktree's `dev-shell`; text shows no layout, so the
+  final report says the after was not compared with the winner by eye. Then close the tab, run
   `uv run just dev-down` and `uv run just dev-rm` in it, and remove the worktree. Both instances
   are on `localhost`, so they share a session cookie: sign in again on the after's.
 
