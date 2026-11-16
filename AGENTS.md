@@ -57,7 +57,8 @@ the first ADR.
 - **Tests** in an addon: [tdd-odoo.md](docs/agents/tdd-odoo.md).
 - **Research** outside the repo: [research.md](docs/agents/research.md).
 - **Prototypes** of a screen: Odoo views, QWeb templates and the module's SCSS, with any variant switcher gated on
-  debug mode so a stray merge cannot show it on the deployed instance.
+  debug mode so a stray merge cannot show it on the deployed instance
+  ([verification.md](docs/agents/verification.md#prototype)).
 - **Pull requests**: [pull-requests.md](docs/agents/pull-requests.md).
 - **Issues**, **PRDs**, **tickets**, **triage labels**: [issue-tracker.md](docs/agents/issue-tracker.md).
 - **Domain docs**: [domain.md](docs/agents/domain.md): `GLOSSARY.md` and `docs/adr/`.
