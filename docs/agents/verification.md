@@ -75,17 +75,55 @@ alone.
 Evidence is for the user, in the thread: they approve it there before the PR opens, and the PR
 carries none of it, neither images nor a before-and-after section.
 
-- The **before** is captured before the first edit, the **after** on the same screen, data and
-  account.
+- The pair is a **reference** and an **after**, same screen, data and account. The reference is the
+  approved prototype variant when the change had one (§ Prototype), else a before, captured before
+  the first edit. Files: `<what>-reference.png` or `<what>-before.png`, and `<what>-after.png`.
 - A screen: a `preview_snapshot` with `save: true` in T3, shown in the thread as an image embedded
   by its absolute path. Until the preview tools work against Odoo (`preview-odoo-login` in
   [t3-dependencies.md](t3-dependencies.md)), the text below is the evidence.
 - Motion or an interaction: a recording (`preview_recording_start` and `preview_recording_stop`),
   linked in the thread by its absolute path.
 - A printed document or a record: its text before and after, from `dev-shell` or the scenario's
-  output, quoted in the thread.
+  output, quoted in the thread: the reference's text and the after's.
 - A test that failed without the change is evidence too; a list of green commands is not.
 - Take evidence from the local copy only, and keep it out of the repo.
+
+## Prototype
+
+How the shared `prototype` skill's UI branch runs here. The `prototype/` directory is the Odoo
+instance, not a prototype: a `prototype/<issue>` branch holds the variants, in that directory's
+`addons/` like any other change.
+
+- **Gates.** Lint runs on a `prototype/*` branch as anywhere, and no gate skips it: pcp has no
+  complexity or duplication gate a variant trips by design. The pre-commit hook
+  (`.githooks/pre-commit`, every hook in `.pre-commit-config.yaml`: ruff, shellcheck,
+  pylint-odoo, the OCA checks, gitleaks) and the Stop hook (`.agents/hooks/stop-lint-check.sh`)
+  run unchanged, and so does `uv run just gate`. CI (`.github/workflows/ci.yml`) runs on pull
+  requests and on pushes to `main` only, and a prototype branch opens no PR, so CI never runs on
+  it.
+- **Variants.** Each variant is an inherited view of the screen's own view, in the module the
+  change belongs to, so the real action, menu, record and data stay. On a form, a non-stored
+  selection field (`prototype_variant`, values `A`, `B`, `C`, default `A`) chooses the variant,
+  and each variant's block carries `invisible="prototype_variant != 'B'"`. The switcher is that
+  field with `widget="radio"` in a bar the module's SCSS fixes to the bottom centre, each value
+  labelled with its key and what it bets on, and the field carries `groups="base.group_no_one"`
+  so only debug mode shows it: without debug every user sees variant A. Changing it redraws the
+  form at once and marks the record changed; discard rather than save. A list or kanban variant
+  is a primary view of its own (`mode="primary"`) behind a debug-only menu item per variant
+  (`groups="base.group_no_one"`). Odoo's router owns the URL, so the variant is not a `?variant=`
+  key: the user switches with the bar, or with the menu items, in the preview tab, opened on the
+  URL `dev-up` prints with `?debug=1`.
+- **Reference capture.** For the implementation's evidence, add a worktree of the prototype
+  branch (`git worktree add`), run `t3.json`'s setup command in it by hand (a worktree made
+  outside T3 has no `prototype/.env` link: [workflows.md](workflows.md#this-repos-worktrees)),
+  and `uv run just dev-up` there: it takes its own port and database. Load the data the after
+  will use there too (the same scenario of § Feature map), open the same record as `admin` with
+  `?debug=1`, switch to the winner, and capture it with `preview_snapshot` (`save: true`) at the
+  viewport the after will use, as `<what>-reference.png`. Until the preview tools work against
+  Odoo (`preview-odoo-login` in [t3-dependencies.md](t3-dependencies.md)), the reference is the
+  text § Evidence names, read from that worktree's `dev-shell`. Then close the tab, run
+  `uv run just dev-down` and `uv run just dev-rm` in it, and remove the worktree. Both instances
+  are on `localhost`, so they share a session cookie: sign in again on the after's.
 
 ## Cleanup
 

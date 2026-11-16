@@ -57,11 +57,12 @@ Status of an entry:
 - **Workaround:** `docs/agents/verification.md` § Drive falls back to `uv run just scenarios` and
   `dev-shell`, read back as text, because the preview tools have not been tried against the local
   Odoo copy (the worktree's own, on the `http://localhost:<port>` that `dev-up` prints) and its
-  login. Evidence shown in the thread is text until they have.
-- **Used by:** `docs/agents/verification.md` § Drive and § Evidence.
+  login. Evidence shown in the thread, a prototype's reference included, is text until they have.
+- **Used by:** `docs/agents/verification.md` § Drive, § Evidence and § Prototype (the reference
+  capture).
 - **Would improve if:** a session opens its worktree's Odoo URL with `preview_open`, signs in as
   `admin`, drives a form and a printed report, and saves a `preview_snapshot` it can show in the
-  thread. Then § Drive drops the fallback for screens, and § Evidence the "text until then" line. The
+  thread. Then § Drive drops the fallback for screens, § Evidence the "text until then" line, and § Prototype its text reference. The
   shared `preview-tools-verification` trial covers the tools themselves.
 - **Watch:** `apps/server/src/mcp/toolkits/preview/tools.ts` (`preview_open`, `preview_snapshot`
   with `save=true`).
