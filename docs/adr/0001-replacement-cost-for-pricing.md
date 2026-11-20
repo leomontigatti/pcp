@@ -14,3 +14,5 @@ Cost whatever costing method stock valuation uses; how the two coexist in Odoo i
   per-product percentage (`COSTOFPOR`, 2–5%); a single 5% on every Product keeps that idea with one number.
 
 Decided with the maintainer on 2026-10-22.
+
+Governs: `replacement_cost`, `cost_freight`, `prototype/addons/pcp_pricing/models/stock_move.py`
