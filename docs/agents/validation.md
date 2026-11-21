@@ -31,6 +31,11 @@ it touched.
 `uv run just gate`. It runs every linter, then the unit tests in `prototype/legacy` and the tests of every
 addon in `prototype/addons`, and prints only failures plus a summary line. Lint may auto-fix files: rerun until it passes.
 
+Then `python3 -I ~/.agents/workflow/skills/domain-modeling/scripts/anchors.py`, from the repo root, until it ends on
+`anchors: ok`. It is the shared workflow's script, as `review.py` is, so it has no recipe. Each `gone:` line names an
+ADR's `Governs:` anchor or a `GLOSSARY.md` term that has left the code: the code is current, so it is a question for
+the user, never an edit to the ADR or the glossary on your own judgement.
+
 Tests run in throwaway databases cloned from a template that has the AR stack installed with demo
 data, in the test image (`prototype/Dockerfile.test`): the dev image plus headless Chrome, so
 `HttpCase` tours (`start_tour`, `start_pos_tour`) run instead of being skipped. A full run also

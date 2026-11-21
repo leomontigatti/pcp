@@ -39,3 +39,5 @@ Sources, checked 2026-10-24: Odoo's
 [pricing](https://www.odoo.com/es/pricing) (a live page, subject to change),
 [OCA l10n-argentina 19.0](https://github.com/OCA/l10n-argentina/tree/19.0) and
 [its issue #89](https://github.com/OCA/l10n-argentina/issues/89).
+
+Governs: `prototype/repos.txt`, `l10n_ar_fiscal_ws`, `l10n_ar_tax`
