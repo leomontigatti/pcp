@@ -5,7 +5,7 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 ## Conventions
 
 - **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.
-- **Read an issue**: `gh issue view <number> --comments`, filtering comments by `jq` and also fetching labels.
+- **Read an issue**: two reads. `gh issue view <number>` prints the body, under a header that carries the labels; then `gh issue view <number> --comments` prints the comments. Outside a terminal the second prints the comments alone, and nothing at all for an issue without comments, so it never stands in for the first.
 - **List issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` with appropriate `--label` and `--state` filters.
 - **Comment on an issue**: `gh issue comment <number> --body "..."`
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
@@ -102,7 +102,8 @@ Create a GitHub issue.
 
 ## When a skill says "fetch the relevant ticket"
 
-Run `gh issue view <number> --comments`.
+Read it as [Conventions](#conventions) says: `gh issue view <number>` for the body, then
+`gh issue view <number> --comments`.
 
 ## Wayfinding operations
 
@@ -128,7 +129,8 @@ conversation and labelled `ready-for-agent`. Its slices are sub-issues created b
   sub-issues endpoint adds one; `gh issue view <PRD> --json subIssues` lists them.
 - **Blocking**: GitHub's native issue dependencies, as in [Wayfinding operations](#wayfinding-operations):
   `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-db-id>`.
-  `gh issue view <n> --json blockedBy` shows the open blockers.
+  `gh issue view <n> --json blockedBy` lists every blocker, the closed ones too; the open ones are
+  `gh issue view <n> --json blockedBy --jq '[.blockedBy.nodes[] | select(.state == "OPEN") | .number]'`.
 - **Frontier**: the open tickets whose blockers are all closed, in the order the PRD lists them.
 - **Creating a slice**: `gh issue create --title ... --body ...` with the PRD's priority, type and milestone,
   and `ready-for-agent`. The body names the behaviour the slice delivers and its acceptance criteria, not
